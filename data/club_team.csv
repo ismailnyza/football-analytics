@@ -1,0 +1,221 @@
+UID,Name,Club,MappedPosition,CompositeScore,Age,Height,Weight,Passing,Vision,Decisions,Finishing,Tackling,Marking,Heading,Technique,CommandOfArea,Handling,Reflexes,OneOnOnes,OffTheBall,Composure,Positioning
+38041723,Renátó Boros,Manchester City,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Manchester City,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Manchester City,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Manchester City,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Manchester City,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Manchester City,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Manchester City,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Manchester City,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Manchester City,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Manchester City,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Manchester City,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Manchester United,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Manchester United,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Manchester United,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Manchester United,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Manchester United,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Manchester United,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Manchester United,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Manchester United,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Manchester United,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Manchester United,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Manchester United,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Liverpool,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Liverpool,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Liverpool,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Liverpool,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Liverpool,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Liverpool,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Liverpool,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Liverpool,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Liverpool,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Liverpool,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Liverpool,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Arsenal,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Arsenal,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Arsenal,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Arsenal,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Arsenal,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Arsenal,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Arsenal,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Arsenal,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Arsenal,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Arsenal,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Arsenal,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Chelsea,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Chelsea,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Chelsea,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Chelsea,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Chelsea,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Chelsea,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Chelsea,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Chelsea,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Chelsea,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Chelsea,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Chelsea,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Tottenham,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Tottenham,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Tottenham,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Tottenham,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Tottenham,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Tottenham,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Tottenham,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Tottenham,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Tottenham,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Tottenham,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Tottenham,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Newcastle,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Newcastle,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Newcastle,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Newcastle,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Newcastle,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Newcastle,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Newcastle,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Newcastle,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Newcastle,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Newcastle,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Newcastle,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Aston Villa,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Aston Villa,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Aston Villa,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Aston Villa,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Aston Villa,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Aston Villa,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Aston Villa,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Aston Villa,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Aston Villa,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Aston Villa,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Aston Villa,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,West Ham,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,West Ham,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,West Ham,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,West Ham,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,West Ham,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,West Ham,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,West Ham,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,West Ham,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,West Ham,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,West Ham,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,West Ham,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Everton,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Everton,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Everton,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Everton,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Everton,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Everton,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Everton,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Everton,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Everton,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Everton,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Everton,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Brighton,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Brighton,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Brighton,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Brighton,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Brighton,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Brighton,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Brighton,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Brighton,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Brighton,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Brighton,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Brighton,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Leicester,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Leicester,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Leicester,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Leicester,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Leicester,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Leicester,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Leicester,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Leicester,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Leicester,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Leicester,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Leicester,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Wolves,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Wolves,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Wolves,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Wolves,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Wolves,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Wolves,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Wolves,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Wolves,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Wolves,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Wolves,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Wolves,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Crystal Palace,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Crystal Palace,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Crystal Palace,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Crystal Palace,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Crystal Palace,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Crystal Palace,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Crystal Palace,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Crystal Palace,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Crystal Palace,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Crystal Palace,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Crystal Palace,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Fulham,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Fulham,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Fulham,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Fulham,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Fulham,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Fulham,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Fulham,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Fulham,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Fulham,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Fulham,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Fulham,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Bournemouth,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Bournemouth,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Bournemouth,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Bournemouth,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Bournemouth,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Bournemouth,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Bournemouth,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Bournemouth,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Bournemouth,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Bournemouth,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Bournemouth,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Southampton,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Southampton,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Southampton,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Southampton,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Southampton,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Southampton,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Southampton,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Southampton,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Southampton,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Southampton,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Southampton,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Ipswich,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Ipswich,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Ipswich,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Ipswich,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Ipswich,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Ipswich,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Ipswich,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Ipswich,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Ipswich,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Ipswich,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Ipswich,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Brentford,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Brentford,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Brentford,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Brentford,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Brentford,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Brentford,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Brentford,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Brentford,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Brentford,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Brentford,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Brentford,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
+38041723,Renátó Boros,Nottingham Forest,Goalkeeper,10.5,19,184,0,1,5,13,3,2,3,1,3,9,13,13,7,3,3,7
+5662731,Hugo Sánchez,Nottingham Forest,Defender,13.5,35,185,77,11,9,10,8,12,14,15,9,1,2,3,1,7,13,13
+67003314,Vicente Mendoza,Nottingham Forest,Defender,12.75,37,180,82,8,9,15,5,14,14,13,4,2,2,2,1,5,10,10
+33054222,Matias Stark,Nottingham Forest,Defender,7.75,20,173,70,7,7,12,7,8,7,8,7,3,1,2,1,7,9,8
+52071514,Lee Lindsay,Nottingham Forest,Defender,7.5,21,183,64,11,10,8,6,7,9,5,10,2,2,3,3,6,6,9
+66002995,You Ho-Jun,Nottingham Forest,Midfielder,10.25,31,183,77,10,11,10,9,10,9,9,10,2,1,4,1,11,10,10
+7453265,Verza,Nottingham Forest,Midfielder,14.5,29,178,68,15,15,13,12,12,12,10,15,3,2,3,3,11,15,14
+27110501,Mathias Poulsen,Nottingham Forest,Midfielder,5.75,19,175,72,9,4,6,3,8,3,3,4,4,3,3,2,2,5,5
+23142772,Ruan Wenbin,Nottingham Forest,Midfielder,9.75,29,184,0,11,12,12,2,5,5,1,4,1,1,4,3,5,4,7
+12053701,Abdelghani Mouaoui,Nottingham Forest,Striker,12.75,27,178,65,8,8,10,14,5,8,14,10,2,3,3,2,13,10,8
+35022715,Thomas Friauf,Nottingham Forest,Striker,10.25,29,182,78,3,6,10,13,4,5,8,9,1,3,2,3,13,7,6
