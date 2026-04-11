@@ -34,5 +34,6 @@ They are not mandatory and not the sole source of truth.
 - adapter implementation
 - normalizer changes
 - validation logic
-- tracker update
+- `TASKS.md` update
+- `docs/IMPLEMENTATION_TRACKER.md` update
 - passing verification before commit/push

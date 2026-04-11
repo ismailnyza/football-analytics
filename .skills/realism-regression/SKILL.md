@@ -29,5 +29,6 @@
 - regression suite
 - metric thresholds
 - notes on failed realism checks
-- tracker update
+- `TASKS.md` update
+- `docs/IMPLEMENTATION_TRACKER.md` update
 - passing verification before commit/push

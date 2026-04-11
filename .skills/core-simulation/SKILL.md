@@ -26,5 +26,6 @@
 ## Deliverables
 - engine code
 - tests for changed formulas
-- tracker update
+- `TASKS.md` update
+- `docs/IMPLEMENTATION_TRACKER.md` update
 - passing verification before commit/push

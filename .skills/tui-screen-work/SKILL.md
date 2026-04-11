@@ -45,5 +45,6 @@ Primary screens:
 - update function
 - view function
 - reusable components if repeated
-- tracker update
+- `TASKS.md` update
+- `docs/IMPLEMENTATION_TRACKER.md` update
 - passing verification before commit/push

@@ -12,7 +12,7 @@ Read these files first:
 - keep build green
 - run relevant tests after every change
 - if tests fail, fix them before moving on
-- update trackers honestly
+- update `TASKS.md` and `docs/IMPLEMENTATION_TRACKER.md` honestly
 - respect Go/Python boundary
 - respect TUI-first design
 - commit only passing work

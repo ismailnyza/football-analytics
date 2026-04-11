@@ -98,6 +98,7 @@ When a task is changed, update:
 - `docs/IMPLEMENTATION_TRACKER.md`
 
 Never claim work is tested if it was not tested.
+Never finish a section without updating both files to reflect the real status.
 
 ### Rule 5: Respect the TUI
 This is keyboard-first software.
@@ -246,6 +247,7 @@ A unit of work is only done when:
 - relevant tests or verification commands were run and passed
 - failing checks were fixed before completion
 - tracking files were updated
+- `TASKS.md` and `docs/IMPLEMENTATION_TRACKER.md` were both updated
 - the passing change was committed
 - the passing commit was pushed when push access is available
 

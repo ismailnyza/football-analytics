@@ -19,14 +19,14 @@ Status values:
 - [x] SEC-002 Go module, build, and CLI bootstrap
 - [x] SEC-003 SQLite schema and migrations
 - [x] SEC-004 Domain models
-- [ ] SEC-005 Repository layer
-- [ ] SEC-007 TUI app shell and navigation
+- [x] SEC-005 Repository layer
+- [x] SEC-007 TUI app shell and navigation
 
 ---
 
 ## Phase B: Core Match Simulation
 
-- [ ] SEC-020 Lineup selection engine
+- [x] SEC-020 Lineup selection engine
 - [ ] SEC-021 Match engine tick loop
 - [ ] SEC-022 Match action resolution
 - [ ] SEC-023 Fatigue system
@@ -84,7 +84,7 @@ Status values:
 
 ## Immediate next task
 
-`SEC-005 Repository layer`
+`SEC-021 Match engine tick loop`
 
 ---
 
@@ -93,5 +93,7 @@ Status values:
 - `SEC-001` and `SEC-002` are complete only as a minimal bootstrap.
 - `SEC-003` currently covers embedded SQL migrations and schema definition.
 - `SEC-004` currently covers canonical entity structs and basic invariants.
-- Runtime SQLite execution wiring is still pending under the repository layer.
+- `SEC-005` currently covers repository interfaces and a SQLite SQL store layer with migration support and CRUD/list foundations.
+- `SEC-007` now provides a Bubble Tea app shell with top bar, navigation, main content area, and status/help bar.
+- `SEC-020` now provides deterministic formation templates and lineup selection with locked-player support.
 - Always update `docs/IMPLEMENTATION_TRACKER.md` when task status changes.
