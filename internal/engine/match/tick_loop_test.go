@@ -29,9 +29,31 @@ func TestRunTickLoopTracksTickCountAndEvents(t *testing.T) {
 		if event.Tick <= 0 || event.Tick > 30 {
 			t.Fatalf("event tick = %d out of range", event.Tick)
 		}
-		if event.Type != "chance" && event.Type != "goal" {
+		switch event.Type {
+		case "build_up", "penetration", "shot", "goal", "save", "block", "turnover":
+		default:
 			t.Fatalf("unexpected event type %q", event.Type)
 		}
+	}
+}
+
+func TestRunTickLoopProducesOrderedActionPhases(t *testing.T) {
+	home, away := samplePlans()
+
+	summary := RunTickLoop(9, home, away, 40)
+	lastTick := -1
+	seenBuildUp := false
+	for _, event := range summary.Events {
+		if event.Tick < lastTick {
+			t.Fatalf("events out of order: %d before %d", event.Tick, lastTick)
+		}
+		lastTick = event.Tick
+		if event.Type == "build_up" {
+			seenBuildUp = true
+		}
+	}
+	if !seenBuildUp {
+		t.Fatal("expected at least one build_up event")
 	}
 }
 

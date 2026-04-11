@@ -28,7 +28,7 @@ Status values:
 
 - [x] SEC-020 Lineup selection engine
 - [x] SEC-021 Match engine tick loop
-- [ ] SEC-022 Match action resolution
+- [x] SEC-022 Match action resolution
 - [ ] SEC-023 Fatigue system
 - [ ] SEC-024 Injury engine
 - [ ] SEC-025 Cards and suspension system
@@ -84,7 +84,7 @@ Status values:
 
 ## Immediate next task
 
-`SEC-022 Match action resolution`
+`SEC-023 Fatigue system`
 
 ---
 
@@ -97,4 +97,5 @@ Status values:
 - `SEC-007` now provides a Bubble Tea app shell with top bar, navigation, main content area, and status/help bar.
 - `SEC-020` now provides deterministic formation templates and lineup selection with locked-player support.
 - `SEC-021` now provides a deterministic 900-tick match loop skeleton with possession and chance generation.
+- `SEC-022` now resolves attacking phases into build-up, penetration, shots, saves, blocks, goals, and turnovers.
 - Always update `docs/IMPLEMENTATION_TRACKER.md` when task status changes.
