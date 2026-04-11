@@ -2,6 +2,7 @@ package match
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/ismael/football-analytics/internal/domain"
 )
@@ -30,6 +31,8 @@ type State struct {
 	Possession  string
 	HomeFatigue map[int64]float64
 	AwayFatigue map[int64]float64
+	HomeInjured map[int64]Injury
+	AwayInjured map[int64]Injury
 	Events      []domain.MatchEvent
 }
 
@@ -40,12 +43,21 @@ type Summary struct {
 	AwayGoals          int
 	HomeAverageFatigue float64
 	AwayAverageFatigue float64
+	Injuries           []Injury
 	Events             []domain.MatchEvent
 }
 
 type attackPhase struct {
 	zone     string
 	advanced bool
+}
+
+// Injury is a deterministic in-match injury record.
+type Injury struct {
+	PlayerID int64
+	Team     string
+	Tick     int
+	Severity string
 }
 
 // BuildTeamPlan derives deterministic team strengths from the selected lineup.
@@ -79,13 +91,15 @@ func RunTickLoop(seed int64, home, away TeamPlan, ticks int) Summary {
 		Possession:  "home",
 		HomeFatigue: initialFatigue(home.Lineup),
 		AwayFatigue: initialFatigue(away.Lineup),
+		HomeInjured: make(map[int64]Injury),
+		AwayInjured: make(map[int64]Injury),
 		Events:      make([]domain.MatchEvent, 0, ticks/6),
 	}
 
 	for tick := 1; tick <= ticks; tick++ {
 		state.Tick = tick
-		effectiveHome := fatigueAdjustedPlan(home, state.HomeFatigue)
-		effectiveAway := fatigueAdjustedPlan(away, state.AwayFatigue)
+		effectiveHome := fatigueAdjustedPlan(home, state.HomeFatigue, len(state.HomeInjured))
+		effectiveAway := fatigueAdjustedPlan(away, state.AwayFatigue, len(state.AwayInjured))
 		state.Possession = possessionForTick(seed, tick, effectiveHome, effectiveAway)
 
 		attacking := effectiveHome
@@ -100,14 +114,18 @@ func RunTickLoop(seed int64, home, away TeamPlan, ticks int) Summary {
 		}
 		applyFatigueTick(state.HomeFatigue, home.Lineup, state.Possession == "home")
 		applyFatigueTick(state.AwayFatigue, away.Lineup, state.Possession == "away")
+		for _, event := range resolveInjuryEvents(seed, tick, home, away, &state) {
+			state.Events = append(state.Events, event)
+		}
 	}
 
 	return Summary{
 		TotalTicks:         ticks,
 		HomeGoals:          state.HomeGoals,
 		AwayGoals:          state.AwayGoals,
-		HomeAverageFatigue: averageFatigue(state.HomeFatigue),
-		AwayAverageFatigue: averageFatigue(state.AwayFatigue),
+		HomeAverageFatigue: averageFatigue(home.Lineup, state.HomeFatigue),
+		AwayAverageFatigue: averageFatigue(away.Lineup, state.AwayFatigue),
+		Injuries:           flattenInjuries(state.HomeInjured, state.AwayInjured),
 		Events:             state.Events,
 	}
 }
@@ -257,22 +275,137 @@ func fatigueLoad(assignment Assignment) float64 {
 	}
 }
 
-func fatigueAdjustedPlan(plan TeamPlan, fatigue map[int64]float64) TeamPlan {
+func fatigueAdjustedPlan(plan TeamPlan, fatigue map[int64]float64, injuredCount int) TeamPlan {
 	adjusted := plan
-	average := averageFatigue(fatigue)
-	adjusted.Attack = max(20, plan.Attack-int(average/3.5))
-	adjusted.Control = max(20, plan.Control-int(average/3.0))
-	adjusted.Defence = max(20, plan.Defence-int(average/4.0))
+	average := averageFatigue(plan.Lineup, fatigue)
+	injuryPenalty := injuredCount * 6
+	adjusted.Attack = max(20, plan.Attack-int(average/3.5)-injuryPenalty)
+	adjusted.Control = max(20, plan.Control-int(average/3.0)-injuryPenalty)
+	adjusted.Defence = max(20, plan.Defence-int(average/4.0)-injuryPenalty)
 	return adjusted
 }
 
-func averageFatigue(fatigue map[int64]float64) float64 {
-	if len(fatigue) == 0 {
+func averageFatigue(lineup []Assignment, fatigue map[int64]float64) float64 {
+	if len(lineup) == 0 {
 		return 0
 	}
 	total := 0.0
-	for _, value := range fatigue {
-		total += value
+	for _, assignment := range lineup {
+		total += fatigue[assignment.Player.ID]
 	}
-	return total / float64(len(fatigue))
+	return total / float64(len(lineup))
+}
+
+func resolveInjuryEvents(seed int64, tick int, home, away TeamPlan, state *State) []domain.MatchEvent {
+	events := make([]domain.MatchEvent, 0, 2)
+	if injury, ok := maybeInjureTeam(seed, tick, home, state.HomeFatigue, state.HomeInjured); ok {
+		state.HomeInjured[injury.PlayerID] = injury
+		events = append(events, injuryEvent(injury, home, state))
+	}
+	if injury, ok := maybeInjureTeam(seed+11, tick, away, state.AwayFatigue, state.AwayInjured); ok {
+		state.AwayInjured[injury.PlayerID] = injury
+		events = append(events, injuryEvent(injury, away, state))
+	}
+	return events
+}
+
+func maybeInjureTeam(seed int64, tick int, team TeamPlan, fatigue map[int64]float64, injured map[int64]Injury) (Injury, bool) {
+	assignment, load, ok := highestFatigueCandidate(team.Lineup, fatigue, injured)
+	if !ok {
+		return Injury{}, false
+	}
+	if load < 2.4 {
+		return Injury{}, false
+	}
+	trigger := (tick + int(seed%31) + int(load*10)) % 41
+	if trigger != 0 {
+		return Injury{}, false
+	}
+	return Injury{
+		PlayerID: assignment.Player.ID,
+		Team:     team.Club.ShortName,
+		Tick:     tick,
+		Severity: injurySeverity(load),
+	}, true
+}
+
+func highestFatigueCandidate(lineup []Assignment, fatigue map[int64]float64, injured map[int64]Injury) (Assignment, float64, bool) {
+	bestLoad := -1.0
+	var best Assignment
+	found := false
+	for _, assignment := range lineup {
+		if assignment.Player.PrimaryPosition == domain.PositionGK {
+			continue
+		}
+		if _, already := injured[assignment.Player.ID]; already {
+			continue
+		}
+		load := fatigue[assignment.Player.ID]
+		if !found || load > bestLoad || (load == bestLoad && comparePlayers(assignment.Player, best.Player) < 0) {
+			best = assignment
+			bestLoad = load
+			found = true
+		}
+	}
+	return best, bestLoad, found
+}
+
+func injurySeverity(load float64) string {
+	switch {
+	case load >= 5.0:
+		return "major"
+	case load >= 3.5:
+		return "moderate"
+	default:
+		return "minor"
+	}
+}
+
+func injuryEvent(injury Injury, team TeamPlan, state *State) domain.MatchEvent {
+	return domain.MatchEvent{
+		Tick:      injury.Tick,
+		Minute:    tickToMinute(injury.Tick),
+		Type:      "injury",
+		PitchZone: "recovery-phase",
+		PayloadRaw: fmt.Sprintf(
+			`{"team":"%s","player_id":%d,"severity":"%s","home_goals":%d,"away_goals":%d}`,
+			team.Club.ShortName,
+			injury.PlayerID,
+			injury.Severity,
+			state.HomeGoals,
+			state.AwayGoals,
+		),
+	}
+}
+
+func flattenInjuries(home, away map[int64]Injury) []Injury {
+	total := make([]Injury, 0, len(home)+len(away))
+	for _, injury := range home {
+		total = append(total, injury)
+	}
+	for _, injury := range away {
+		total = append(total, injury)
+	}
+	slices.SortFunc(total, func(left, right Injury) int {
+		if left.Tick != right.Tick {
+			if left.Tick < right.Tick {
+				return -1
+			}
+			return 1
+		}
+		if left.Team != right.Team {
+			if left.Team < right.Team {
+				return -1
+			}
+			return 1
+		}
+		if left.PlayerID < right.PlayerID {
+			return -1
+		}
+		if left.PlayerID > right.PlayerID {
+			return 1
+		}
+		return 0
+	})
+	return total
 }

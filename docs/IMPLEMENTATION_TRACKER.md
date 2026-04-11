@@ -26,10 +26,11 @@ This file is the single truth ledger for implementation, review, and test status
 | SEC-021 Match engine tick loop | TESTED | Added a deterministic match loop skeleton with team plan derivation, possession flow, chance/goal event generation, and repeatability tests across identical inputs. |
 | SEC-022 Match action resolution | TESTED | Replaced aggregate chance events with deterministic action phases covering build-up, penetration, shot attempts, saves, blocks, goals, and turnovers, with ordering and event-type tests. |
 | SEC-023 Fatigue system | TESTED | Added deterministic per-player fatigue accumulation by slot and possession load, exposed average fatigue in match summaries, and tested that fatigue builds over time and reduces effective team strength. |
+| SEC-024 Injury engine | TESTED | Added deterministic injury triggering from fatigue/load, injury event emission, stable injury summaries, and tests for deterministic injury records and high-fatigue trigger conditions. |
 
 ## Risks and caveats
 
 - The branch is intentionally reset; previous Python implementation files were removed rather than migrated.
 - The project now depends on Bubble Tea, Bubbles, and Lip Gloss for the TUI shell.
 - SQLite repository logic exists, but no external SQLite driver dependency has been added yet for live integration tests.
-- The next task should layer a deterministic injury engine over the current fatigue-aware action loop.
+- The next task should add deterministic bookings, dismissals, and suspension tracking on top of the current injury-aware match loop.

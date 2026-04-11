@@ -30,7 +30,7 @@ func TestRunTickLoopTracksTickCountAndEvents(t *testing.T) {
 			t.Fatalf("event tick = %d out of range", event.Tick)
 		}
 		switch event.Type {
-		case "build_up", "penetration", "shot", "goal", "save", "block", "turnover":
+		case "build_up", "penetration", "shot", "goal", "save", "block", "turnover", "injury":
 		default:
 			t.Fatalf("unexpected event type %q", event.Type)
 		}
@@ -93,12 +93,48 @@ func TestFatigueAdjustedPlanReducesStrength(t *testing.T) {
 		applyFatigueTick(fatigue, assignments, true)
 	}
 
-	adjusted := fatigueAdjustedPlan(base, fatigue)
+	adjusted := fatigueAdjustedPlan(base, fatigue, 0)
 	if adjusted.Attack >= base.Attack {
 		t.Fatalf("adjusted attack = %d, want less than %d", adjusted.Attack, base.Attack)
 	}
 	if adjusted.Control >= base.Control {
 		t.Fatalf("adjusted control = %d, want less than %d", adjusted.Control, base.Control)
+	}
+}
+
+func TestRunTickLoopInjuriesAreDeterministic(t *testing.T) {
+	home, away := samplePlans()
+
+	first := RunTickLoop(18, home, away, 180)
+	second := RunTickLoop(18, home, away, 180)
+	if !reflect.DeepEqual(first.Injuries, second.Injuries) {
+		t.Fatal("injury summaries differ for identical inputs")
+	}
+}
+
+func TestMaybeInjureTeamTriggersForHighFatigueCandidate(t *testing.T) {
+	assignments, err := SelectLineup(sampleSquad(), "4-3-3", nil)
+	if err != nil {
+		t.Fatalf("SelectLineup() error = %v", err)
+	}
+	plan := BuildTeamPlan(domain.Club{Name: "Home", ShortName: "HOM"}, assignments)
+	fatigue := initialFatigue(assignments)
+	for _, assignment := range assignments {
+		if assignment.Player.PrimaryPosition != domain.PositionGK {
+			fatigue[assignment.Player.ID] = 4.0
+		}
+	}
+	injured := make(map[int64]Injury)
+
+	injury, ok := maybeInjureTeam(18, 24, plan, fatigue, injured)
+	if !ok {
+		t.Fatal("expected injury trigger for deterministic high-fatigue input")
+	}
+	if injury.Team != "HOM" {
+		t.Fatalf("injury.Team = %q, want HOM", injury.Team)
+	}
+	if injury.Severity == "" {
+		t.Fatal("injury severity is empty")
 	}
 }
 
