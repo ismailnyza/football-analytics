@@ -18,6 +18,7 @@ type Migrator interface {
 // WorldRepository persists worlds and branches.
 type WorldRepository interface {
 	CreateWorld(ctx context.Context, world domain.World) (domain.World, error)
+	ListWorlds(ctx context.Context) ([]domain.World, error)
 	CreateBranch(ctx context.Context, branch domain.Branch) (domain.Branch, error)
 	ListBranches(ctx context.Context, worldID int64) ([]domain.Branch, error)
 }
@@ -37,6 +38,7 @@ type PlayerRepository interface {
 // SeasonRepository persists season and fixture records.
 type SeasonRepository interface {
 	CreateSeason(ctx context.Context, season domain.Season) (domain.Season, error)
+	ListSeasonsByBranch(ctx context.Context, branchID int64) ([]domain.Season, error)
 	CreateFixture(ctx context.Context, fixture domain.Fixture) (domain.Fixture, error)
 	ListFixturesBySeason(ctx context.Context, seasonID int64) ([]domain.Fixture, error)
 }
@@ -44,6 +46,7 @@ type SeasonRepository interface {
 // MatchRepository persists match summaries and event logs.
 type MatchRepository interface {
 	CreateMatch(ctx context.Context, match domain.Match) (domain.Match, error)
+	ListMatchesBySeason(ctx context.Context, seasonID int64) ([]domain.Match, error)
 	SaveMatchEvents(ctx context.Context, events []domain.MatchEvent) error
 	ListMatchEvents(ctx context.Context, matchID int64) ([]domain.MatchEvent, error)
 }

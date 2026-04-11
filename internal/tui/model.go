@@ -4,8 +4,6 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-
 	"github.com/ismael/football-analytics/internal/app"
 	"github.com/ismael/football-analytics/internal/tui/keymap"
 	"github.com/ismael/football-analytics/internal/tui/layout"
@@ -37,15 +35,19 @@ type Model struct {
 // NewModel creates the root TUI shell with the default navigation sections.
 func NewModel(cfg app.Config) Model {
 	return Model{
-		cfg:        cfg,
-		sections:   append([]string(nil), keymap.DefaultSections...),
-		focus:      focusNav,
-		keys:       keymap.DefaultMap(),
-		statusNote: "Bootstrap shell ready",
+		cfg:          cfg,
+		sections:     append([]string(nil), keymap.DefaultSections...),
+		focus:        focusNav,
+		keys:         keymap.DefaultMap(),
+		statusNote:   "j/k pick section  enter focus panel  q quit",
+		activeScreen: screens.NewScreenFor("Dashboard", cfg),
 	}
 }
 
 func (m Model) Init() tea.Cmd {
+	if m.activeScreen != nil {
+		return m.activeScreen.Init()
+	}
 	return nil
 }
 
@@ -89,18 +91,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case keymap.Matches(msg, m.keys.Down):
 			m.selected = clamp(m.selected+1, 0, len(m.sections)-1)
-			m.statusNote = "Section changed"
-			m.activeScreen = nil
-		case keymap.Matches(msg, m.keys.Up):
-			m.selected = clamp(m.selected-1, 0, len(m.sections)-1)
-			m.statusNote = "Section changed"
-			m.activeScreen = nil
-		case keymap.Matches(msg, m.keys.Select):
-			m.focus = focusMain
-			m.statusNote = "Opened " + m.activeSection()
-			m.activeScreen = screens.NewScreenFor(m.activeSection())
+			m.statusNote = "Section: " + m.activeSection()
+			m.activeScreen = screens.NewScreenFor(m.activeSection(), m.cfg)
 			if m.activeScreen != nil {
 				return m, m.activeScreen.Init()
+			}
+		case keymap.Matches(msg, m.keys.Up):
+			m.selected = clamp(m.selected-1, 0, len(m.sections)-1)
+			m.statusNote = "Section: " + m.activeSection()
+			m.activeScreen = screens.NewScreenFor(m.activeSection(), m.cfg)
+			if m.activeScreen != nil {
+				return m, m.activeScreen.Init()
+			}
+		case keymap.Matches(msg, m.keys.Select):
+			m.focus = focusMain
+			m.statusNote = "Panel: " + m.activeSection()
+			if m.activeScreen == nil {
+				m.activeScreen = screens.NewScreenFor(m.activeSection(), m.cfg)
+				if m.activeScreen != nil {
+					return m, m.activeScreen.Init()
+				}
 			}
 		}
 	}
@@ -112,10 +122,9 @@ func (m Model) View() string {
 		return ""
 	}
 
-	w := fallbackSize(m.width, 100)
-	h := fallbackSize(m.height, 30)
+	w, h := layout.TerminalLayoutSize(m.width, m.height)
 
-	mainContent := screens.ContentFor(m.activeSection())
+	mainContent := screens.MainPlaceholder(m.activeSection())
 	if m.activeScreen != nil {
 		mainContent = m.activeScreen.View(w, h)
 	}
@@ -135,7 +144,7 @@ func (m Model) View() string {
 		ShowHelp:    m.showHelp,
 		FocusLabel:  string(m.focus),
 	}
-	return lipgloss.Place(vm.Width, vm.Height, lipgloss.Left, lipgloss.Top, layout.RenderAppShell(vm))
+	return layout.RenderAppShell(vm)
 }
 
 func (m Model) activeSection() string {
@@ -151,13 +160,6 @@ func clamp(value, min, max int) int {
 	}
 	if value > max {
 		return max
-	}
-	return value
-}
-
-func fallbackSize(value, fallback int) int {
-	if value <= 0 {
-		return fallback
 	}
 	return value
 }

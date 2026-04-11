@@ -35,56 +35,68 @@ Status values:
 - [x] SEC-026 Set piece engine
 - [x] SEC-027 Match persistence and stats aggregation
 - [x] SEC-011 Match Lab screen
-- [ ] SEC-012 Match result and event log screens
+- [x] SEC-012 Match result and event log screens
 
 ---
 
 ## Phase C: Season Simulation
 
-- [ ] SEC-028 Fixture generation
-- [ ] SEC-029 League table engine
-- [ ] SEC-030 Season progression loop
-- [ ] SEC-031 Recovery and between-match updates
-- [ ] SEC-013 Season Lab screen
-- [ ] SEC-008 Dashboard screen
-- [ ] SEC-009 Squad screen
-- [ ] SEC-010 Player detail screen
-- [ ] SEC-014 Club screen
+- [x] SEC-028 Fixture generation
+- [x] SEC-029 League table engine
+- [x] SEC-030 Season progression loop
+- [x] SEC-031 Recovery and between-match updates
+- [x] SEC-013 Season Lab screen
+- [x] SEC-008 Dashboard screen
+- [x] SEC-009 Squad screen
+- [x] SEC-010 Player detail screen
+- [x] SEC-014 Club screen
 
 ---
 
 ## Phase D: Long-Term World Simulation
 
-- [ ] SEC-032 Player development engine
-- [ ] SEC-033 Retirement and aging system
-- [ ] SEC-034 Youth intake / regen system
-- [ ] SEC-035 Club finance engine
-- [ ] SEC-036 Transfer valuation and decision engine
-- [ ] SEC-037 Contract logic
-- [ ] SEC-015 Transfers screen
-- [ ] SEC-017 World screen
-- [ ] SEC-016 Scenarios / branch management screen
+- [x] SEC-032 Player development engine
+- [x] SEC-033 Retirement and aging system
+- [x] SEC-034 Youth intake / regen system
+- [x] SEC-035 Club finance engine
+- [x] SEC-036 Transfer valuation and decision engine
+- [x] SEC-037 Contract logic
+- [x] SEC-015 Transfers screen
+- [x] SEC-017 World screen
+- [x] SEC-016 Scenarios / branch management screen
 
 ---
 
 ## Phase E: Data and Calibration Layer
 
-- [ ] SEC-038 Ingestion raw staging pipeline
-- [ ] SEC-039 Source adapters
-- [ ] SEC-040 Normalization pipeline
-- [ ] SEC-041 Entity resolution
-- [ ] SEC-042 Validation and publish pipeline
-- [ ] SEC-018 Data / import screen
-- [ ] SEC-043 Python calibration bridge
-- [ ] SEC-044 Export tools
-- [ ] SEC-045 Test harness and realism regression suite
-- [ ] SEC-046 Documentation and handoff hygiene
+- [x] SEC-038 Ingestion raw staging pipeline
+- [x] SEC-039 Source adapters
+- [x] SEC-040 Normalization pipeline
+- [x] SEC-041 Entity resolution
+- [x] SEC-042 Validation and publish pipeline
+- [x] SEC-018 Data / import screen
+- [x] SEC-043 Python calibration bridge
+- [x] SEC-044 Export tools
+- [x] SEC-045 Test harness and realism regression suite
+- [x] SEC-046 Documentation and handoff hygiene
+
+---
+
+## Phase F: Player Scraper
+
+- [x] SEC-047 FBref HTML scraper adapter (player stats → staged records)
+- [x] SEC-048 FBref normalizer (raw stats → domain player approximation)
+- [x] SEC-049 CLI scrape command (`simcli scrape`)
+- [x] SEC-050 Data/Import screen scrape trigger and status (`s` + `fbref_url.txt`, ledger updates)
 
 ---
 
 ## Immediate next task
 
-`SEC-012 Match result and event log screens`
+Build on the SQLite-backed runtime with richer world workflows:
+- add TUI browsing for published entities beyond the current normalized/raw previews
+- expose branch creation and replay workflows more broadly across saved history outside Match/Season Lab
+- consider persisting richer match summary detail for higher-fidelity replay views
 
 ---
 
@@ -103,4 +115,19 @@ Status values:
 - `SEC-025` now applies deterministic yellow/red card events and immediate red-card suspensions during matches.
 - `SEC-026` now routes some advanced attacks into deterministic corners, free kicks, and penalties.
 - `SEC-027` now aggregates stable match stats and provides a service-level persistence path for match records and event logs.
+- `SEC-028–031` implement round-robin fixture generation, league table computation, full-season progression loop, and fatigue/injury recovery.
+- `SEC-032–034` implement player development (growth/decline), retirement/aging, and youth intake with deterministic generation.
+- `SEC-035–037` implement club finances (revenue/wage/budget), transfer valuation/AI decisions, and contract logic.
+- `SEC-038–042` implement the data ingestion pipeline: staging store, source adapters, normalization, entity resolution, and validation.
+- Ingest ledger `ingest_state.json` under `ResolveStateDir()` (default user cache `football-analytics/`) stores per-source last fetch time, counts, `cap_per_run`, and last error; `simcli fetch` and Data/Import `f` run demo adapters with capped staging.
+- `simcli scrape --url …` or `fbref_url.txt` in state dir: HTTP fetch FBref `stats_table` player rows → staging; `NormalizeFbrefPlayerRecord` maps raw JSON to `NormalizedRecord` / validation attributes; Data/Import `s` runs the same scrape when `fbref_url.txt` exists.
+- `SEC-043` provides a file-based Python calibration bridge (request/response JSON I/O).
+- `SEC-044` provides CSV and JSON export tools for players, standings, and match results.
+- `SEC-045` provides a realism regression suite verifying structural integrity and determinism of the full season simulation.
+- `simtui` now bootstraps a local SQLite database under the resolved state dir, migrates it on startup, seeds a default demo world if empty, and feeds storage-backed data into Dashboard, World, Club, Squad, and Player Detail screens.
+- `Match Lab` and `Season Lab` now load clubs/squads from the active SQLite branch when available and persist simulated seasons, fixtures, matches, and event logs back into SQLite.
+- Data / Import now supports editing and saving the FBref scrape URL directly inside the TUI (`u` to edit, `enter` to save, `s` to scrape).
+- Data ingest staging now persists in SQLite raw payload tables instead of process-local memory, and Match/Season Lab both expose saved-history reload flows from persisted SQLite data.
+- `Scenarios` now updates shared active-branch runtime state, Data / Import shows staged raw payload previews per source, and Match Lab can create a new replay branch from a saved match.
+- Data / Import now renders normalized FBref preview rows from staged payloads, Season Lab can create replay branches from saved seasons, and replay reconstruction now restores cards/injuries/suspensions from persisted match events.
 - Always update `docs/IMPLEMENTATION_TRACKER.md` when task status changes.

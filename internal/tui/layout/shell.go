@@ -26,36 +26,42 @@ type ViewModel struct {
 }
 
 var (
+	pageFg = lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#e8e8e8"}
+	pageBg = lipgloss.AdaptiveColor{Light: "#f2f2f2", Dark: "#1e1e2e"}
+
 	pageStyle = lipgloss.NewStyle().
 			Padding(1, 2).
-			Foreground(lipgloss.Color("252"))
+			Foreground(pageFg).
+			Background(pageBg)
 
 	topBarStyle = lipgloss.NewStyle().
-			Background(lipgloss.Color("24")).
-			Foreground(lipgloss.Color("255")).
+			Background(lipgloss.AdaptiveColor{Light: "#2563eb", Dark: "#3d59a1"}).
+			Foreground(lipgloss.AdaptiveColor{Light: "#ffffff", Dark: "#ffffff"}).
 			Padding(0, 1).
 			Bold(true)
 
 	panelStyle = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("240")).
+			BorderForeground(lipgloss.AdaptiveColor{Light: "#64748b", Dark: "#6b7089"}).
+			Background(lipgloss.AdaptiveColor{Light: "#e8e8ec", Dark: "#2a2a3d"}).
 			Padding(1)
 
 	panelTitleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("117")).
+			Foreground(lipgloss.AdaptiveColor{Light: "#1d4ed8", Dark: "#7aa2f7"}).
 			Bold(true)
 
 	selectedNavStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("230")).
-				Background(lipgloss.Color("62")).
+				Foreground(lipgloss.AdaptiveColor{Light: "#ffffff", Dark: "#c0caf5"}).
+				Background(lipgloss.AdaptiveColor{Light: "#1d4ed8", Dark: "#565f89"}).
 				Padding(0, 1)
 
 	navStyle = lipgloss.NewStyle().
+			Foreground(pageFg).
 			Padding(0, 1)
 
 	statusStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("251")).
-			Background(lipgloss.Color("236")).
+			Foreground(lipgloss.AdaptiveColor{Light: "#334155", Dark: "#c0caf5"}).
+			Background(lipgloss.AdaptiveColor{Light: "#cbd5e1", Dark: "#363b54"}).
 			Padding(0, 1)
 )
 

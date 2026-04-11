@@ -1,10 +1,13 @@
 package matchlab
 
 import (
+	"context"
 	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/ismael/football-analytics/internal/app"
 )
 
 func TestNew_initialState(t *testing.T) {
@@ -116,6 +119,79 @@ func TestUpdate_deterministic(t *testing.T) {
 	}
 }
 
+func TestNewWithConfig_usesStorageBackedTeams(t *testing.T) {
+	cfg, closeStore, err := app.OpenLocalStore(context.Background(), app.Config{StateDir: t.TempDir()})
+	if err != nil {
+		t.Fatalf("OpenLocalStore() error = %v", err)
+	}
+	defer closeStore()
+
+	m := NewWithConfig(cfg)
+	if len(m.homeSquad) < 11 {
+		t.Fatalf("homeSquad len = %d, want at least 11", len(m.homeSquad))
+	}
+	if len(m.awaySquad) < 11 {
+		t.Fatalf("awaySquad len = %d, want at least 11", len(m.awaySquad))
+	}
+	if m.homeClub.ID == 0 || m.awayClub.ID == 0 {
+		t.Fatal("expected storage-backed club IDs")
+	}
+}
+
+func TestUpdate_teamCyclingChangesSelectedClubs(t *testing.T) {
+	cfg, closeStore, err := app.OpenLocalStore(context.Background(), app.Config{StateDir: t.TempDir()})
+	if err != nil {
+		t.Fatalf("OpenLocalStore() error = %v", err)
+	}
+	defer closeStore()
+
+	m := NewWithConfig(cfg)
+	originalHome := m.homeClub.ID
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("]")})
+	if m.homeClub.ID == originalHome {
+		t.Fatal("expected home club to change after ]")
+	}
+}
+
+func TestUpdate_pLoadsSavedMatchReplay(t *testing.T) {
+	cfg, closeStore, err := app.OpenLocalStore(context.Background(), app.Config{StateDir: t.TempDir()})
+	if err != nil {
+		t.Fatalf("OpenLocalStore() error = %v", err)
+	}
+	defer closeStore()
+
+	m := NewWithConfig(cfg)
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	if len(m.history) == 0 {
+		t.Fatal("expected saved match history after simulate")
+	}
+	m.simulated = false
+	m.summary = nil
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("p")})
+	if !m.simulated || m.summary == nil {
+		t.Fatal("expected replay to load after p")
+	}
+}
+
+func TestUpdate_cCreatesBranchFromSavedMatch(t *testing.T) {
+	cfg, closeStore, err := app.OpenLocalStore(context.Background(), app.Config{StateDir: t.TempDir()})
+	if err != nil {
+		t.Fatalf("OpenLocalStore() error = %v", err)
+	}
+	defer closeStore()
+
+	originalBranchID := cfg.State.ActiveBranchID
+	m := NewWithConfig(cfg)
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	if len(m.history) == 0 {
+		t.Fatal("expected match history after simulate")
+	}
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("c")})
+	if cfg.State.ActiveBranchID == originalBranchID {
+		t.Fatal("expected shared active branch to change after c")
+	}
+}
+
 func TestView_containsExpectedRegions(t *testing.T) {
 	m := New()
 	view := m.View(120, 40)
@@ -160,5 +236,173 @@ func TestView_scrollEventLog(t *testing.T) {
 	// should not go below 0
 	if m.eventScroll < 0 {
 		t.Fatalf("eventScroll = %d, must not be negative", m.eventScroll)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// SEC-012: result detail and event log view tests
+// ---------------------------------------------------------------------------
+
+func TestUpdate_vKeyOpensResultView(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	if !m.simulated {
+		t.Fatal("expected simulated after s")
+	}
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("v")})
+	if m.viewMode != viewModeResult {
+		t.Fatalf("viewMode = %d, want viewModeResult after v", m.viewMode)
+	}
+}
+
+func TestUpdate_vKeyIgnoredWhenNotSimulated(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("v")})
+	if m.viewMode != viewModeSplit {
+		t.Fatalf("viewMode = %d, want viewModeSplit when not simulated", m.viewMode)
+	}
+}
+
+func TestUpdate_eKeyOpensEventLog(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("e")})
+	if m.viewMode != viewModeEvents {
+		t.Fatalf("viewMode = %d, want viewModeEvents after e", m.viewMode)
+	}
+}
+
+func TestUpdate_eKeyIgnoredWhenNotSimulated(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("e")})
+	if m.viewMode != viewModeSplit {
+		t.Fatalf("viewMode = %d, want viewModeSplit when not simulated", m.viewMode)
+	}
+}
+
+func TestUpdate_bKeyReturnsToSplitFromResult(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("v")})
+	if m.viewMode != viewModeResult {
+		t.Fatal("expected viewModeResult before b")
+	}
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("b")})
+	if m.viewMode != viewModeSplit {
+		t.Fatalf("viewMode = %d, want viewModeSplit after b", m.viewMode)
+	}
+}
+
+func TestUpdate_bKeyReturnsToSplitFromEvents(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("e")})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("b")})
+	if m.viewMode != viewModeSplit {
+		t.Fatalf("viewMode = %d, want viewModeSplit after b", m.viewMode)
+	}
+}
+
+func TestUpdate_switchBetweenResultAndEvents(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("v")})
+	if m.viewMode != viewModeResult {
+		t.Fatal("expected viewModeResult")
+	}
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("e")})
+	if m.viewMode != viewModeEvents {
+		t.Fatal("expected viewModeEvents after e from result view")
+	}
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("v")})
+	if m.viewMode != viewModeResult {
+		t.Fatal("expected viewModeResult after v from events view")
+	}
+}
+
+func TestUpdate_filterCyclesInEventLog(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("e")})
+	if m.eventFilter != filterAll {
+		t.Fatal("expected filterAll initially")
+	}
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("f")})
+	if m.eventFilter == filterAll {
+		t.Fatal("eventFilter should advance after f")
+	}
+	// cycle through all filters back to filterAll
+	for i := 0; i < len(filterLabels)-1; i++ {
+		m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("f")})
+	}
+	if m.eventFilter != filterAll {
+		t.Fatalf("eventFilter = %d, want filterAll after full cycle", m.eventFilter)
+	}
+}
+
+func TestView_resultViewContainsMatchData(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("v")})
+	view := m.View(120, 40)
+	for _, fragment := range []string{
+		"Match Result",
+		"Statistics",
+		"Team Condition",
+		"ARS",
+		"LIV",
+	} {
+		if !strings.Contains(view, fragment) {
+			t.Fatalf("result view missing %q", fragment)
+		}
+	}
+}
+
+func TestView_eventLogViewContainsFilterBar(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("e")})
+	view := m.View(120, 40)
+	for _, fragment := range []string{
+		"Event Log",
+		"All",
+		"Goals",
+		"Cards",
+		"Injuries",
+	} {
+		if !strings.Contains(view, fragment) {
+			t.Fatalf("event log view missing %q", fragment)
+		}
+	}
+}
+
+func TestView_resultScrollBoundsCheck(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("v")})
+	// scroll down many times
+	for i := 0; i < 100; i++ {
+		m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})
+	}
+	// scroll back up past zero
+	for i := 0; i < 200; i++ {
+		m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("k")})
+	}
+	if m.resultScroll < 0 {
+		t.Fatalf("resultScroll = %d, must not be negative", m.resultScroll)
+	}
+	// View must not panic
+	_ = m.View(120, 40)
+}
+
+func TestView_splitViewHintsAfterSimulation(t *testing.T) {
+	m := New()
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("s")})
+	view := m.View(120, 40)
+	if !strings.Contains(view, "v: result detail") {
+		t.Fatal("split view should hint 'v: result detail' after simulation")
+	}
+	if !strings.Contains(view, "e: event log") {
+		t.Fatal("split view should hint 'e: event log' after simulation")
 	}
 }

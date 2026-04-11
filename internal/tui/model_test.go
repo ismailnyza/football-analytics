@@ -43,6 +43,7 @@ func TestViewIncludesShellRegions(t *testing.T) {
 		"Main Content",
 		"Status",
 		"Dashboard",
+		"Demo World",
 	}
 	for _, fragment := range required {
 		if !strings.Contains(view, fragment) {

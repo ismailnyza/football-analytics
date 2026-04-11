@@ -98,6 +98,32 @@ func (s *Store) CreateWorld(ctx context.Context, world domain.World) (domain.Wor
 	return world, nil
 }
 
+func (s *Store) ListWorlds(ctx context.Context) ([]domain.World, error) {
+	rows, err := s.db.QueryContext(
+		ctx,
+		`SELECT id, name, seed, created_at FROM worlds ORDER BY id`,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("query worlds: %w", err)
+	}
+	defer rows.Close()
+
+	var worlds []domain.World
+	for rows.Next() {
+		var world domain.World
+		var createdAt dbTime
+		if err := rows.Scan(&world.ID, &world.Name, &world.Seed, &createdAt); err != nil {
+			return nil, fmt.Errorf("scan world: %w", err)
+		}
+		world.CreatedAt = createdAt.Time
+		worlds = append(worlds, world)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate worlds: %w", err)
+	}
+	return worlds, nil
+}
+
 func (s *Store) CreateBranch(ctx context.Context, branch domain.Branch) (domain.Branch, error) {
 	res, err := s.db.ExecContext(
 		ctx,
@@ -134,18 +160,20 @@ func (s *Store) ListBranches(ctx context.Context, worldID int64) ([]domain.Branc
 		var branch domain.Branch
 		var parentID sql.NullInt64
 		var matchID sql.NullInt64
+		var createdAt dbTime
 		if err := rows.Scan(
 			&branch.ID,
 			&branch.WorldID,
 			&parentID,
 			&branch.Name,
 			&matchID,
-			&branch.CreatedAt,
+			&createdAt,
 		); err != nil {
 			return nil, fmt.Errorf("scan branch: %w", err)
 		}
 		branch.ParentBranchID = fromNullInt64(parentID)
 		branch.CreatedFromMatchID = fromNullInt64(matchID)
+		branch.CreatedAt = createdAt.Time
 		branches = append(branches, branch)
 	}
 	if err := rows.Err(); err != nil {
@@ -292,6 +320,31 @@ func (s *Store) CreateSeason(ctx context.Context, season domain.Season) (domain.
 	return season, nil
 }
 
+func (s *Store) ListSeasonsByBranch(ctx context.Context, branchID int64) ([]domain.Season, error) {
+	rows, err := s.db.QueryContext(
+		ctx,
+		`SELECT id, branch_id, label, start_year FROM seasons WHERE branch_id = ? ORDER BY id DESC`,
+		branchID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("query seasons: %w", err)
+	}
+	defer rows.Close()
+
+	var seasons []domain.Season
+	for rows.Next() {
+		var season domain.Season
+		if err := rows.Scan(&season.ID, &season.BranchID, &season.Label, &season.StartYear); err != nil {
+			return nil, fmt.Errorf("scan season: %w", err)
+		}
+		seasons = append(seasons, season)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate seasons: %w", err)
+	}
+	return seasons, nil
+}
+
 func (s *Store) CreateFixture(ctx context.Context, fixture domain.Fixture) (domain.Fixture, error) {
 	if err := fixture.Validate(); err != nil {
 		return domain.Fixture{}, err
@@ -331,7 +384,7 @@ func (s *Store) ListFixturesBySeason(ctx context.Context, seasonID int64) ([]dom
 	var fixtures []domain.Fixture
 	for rows.Next() {
 		var fixture domain.Fixture
-		var scheduled sql.NullTime
+		var scheduled dbTime
 		if err := rows.Scan(
 			&fixture.ID,
 			&fixture.SeasonID,
@@ -342,9 +395,7 @@ func (s *Store) ListFixturesBySeason(ctx context.Context, seasonID int64) ([]dom
 		); err != nil {
 			return nil, fmt.Errorf("scan fixture: %w", err)
 		}
-		if scheduled.Valid {
-			fixture.Scheduled = scheduled.Time
-		}
+		fixture.Scheduled = scheduled.Time
 		fixtures = append(fixtures, fixture)
 	}
 	if err := rows.Err(); err != nil {
@@ -381,6 +432,47 @@ func (s *Store) CreateMatch(ctx context.Context, match domain.Match) (domain.Mat
 		return domain.Match{}, fmt.Errorf("match last insert id: %w", err)
 	}
 	return match, nil
+}
+
+func (s *Store) ListMatchesBySeason(ctx context.Context, seasonID int64) ([]domain.Match, error) {
+	rows, err := s.db.QueryContext(
+		ctx,
+		`SELECT m.id, m.fixture_id, m.branch_id, m.home_goals, m.away_goals, m.tick_count, m.seed, m.status, m.simulated_at
+		FROM matches m
+		INNER JOIN fixtures f ON f.id = m.fixture_id
+		WHERE f.season_id = ?
+		ORDER BY f.matchday, m.id`,
+		seasonID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("query matches by season: %w", err)
+	}
+	defer rows.Close()
+
+	var matches []domain.Match
+	for rows.Next() {
+		var match domain.Match
+		var simulatedAt dbTime
+		if err := rows.Scan(
+			&match.ID,
+			&match.FixtureID,
+			&match.BranchID,
+			&match.HomeGoals,
+			&match.AwayGoals,
+			&match.TickCount,
+			&match.Seed,
+			&match.Status,
+			&simulatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan match by season: %w", err)
+		}
+		match.SimulatedAt = simulatedAt.Time
+		matches = append(matches, match)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate matches by season: %w", err)
+	}
+	return matches, nil
 }
 
 func (s *Store) SaveMatchEvents(ctx context.Context, events []domain.MatchEvent) error {
@@ -447,7 +539,7 @@ func (s *Store) ListMatchEvents(ctx context.Context, matchID int64) ([]domain.Ma
 func scanPlayer(scanner interface{ Scan(dest ...any) error }) (domain.Player, error) {
 	var player domain.Player
 	var clubID sql.NullInt64
-	var birthDate sql.NullTime
+	var birthDate dbTime
 	var primary string
 	var secondary string
 	if err := scanner.Scan(
@@ -468,9 +560,7 @@ func scanPlayer(scanner interface{ Scan(dest ...any) error }) (domain.Player, er
 		return domain.Player{}, fmt.Errorf("scan player: %w", err)
 	}
 	player.ClubID = fromNullInt64(clubID)
-	if birthDate.Valid {
-		player.DateOfBirth = birthDate.Time
-	}
+	player.DateOfBirth = birthDate.Time
 	position, err := domain.ParsePosition(primary)
 	if err != nil {
 		return domain.Player{}, err
@@ -542,6 +632,68 @@ func nullTime(value time.Time) sql.NullTime {
 		return sql.NullTime{}
 	}
 	return sql.NullTime{Time: value, Valid: true}
+}
+
+type dbTime struct {
+	Time  time.Time
+	Valid bool
+}
+
+func (t *dbTime) Scan(src any) error {
+	switch value := src.(type) {
+	case nil:
+		t.Time = time.Time{}
+		t.Valid = false
+		return nil
+	case time.Time:
+		t.Time = value
+		t.Valid = true
+		return nil
+	case sql.NullTime:
+		t.Time = value.Time
+		t.Valid = value.Valid
+		return nil
+	case string:
+		parsed, err := parseSQLiteTime(value)
+		if err != nil {
+			return err
+		}
+		t.Time = parsed
+		t.Valid = true
+		return nil
+	case []byte:
+		parsed, err := parseSQLiteTime(string(value))
+		if err != nil {
+			return err
+		}
+		t.Time = parsed
+		t.Valid = true
+		return nil
+	default:
+		return fmt.Errorf("scan db time: unsupported type %T", src)
+	}
+}
+
+func parseSQLiteTime(value string) (time.Time, error) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return time.Time{}, nil
+	}
+	layouts := []string{
+		time.RFC3339Nano,
+		time.RFC3339,
+		"2006-01-02 15:04:05 -0700 MST",
+		"2006-01-02 15:04:05.999999999-07:00",
+		"2006-01-02 15:04:05.999999999",
+		"2006-01-02 15:04:05",
+		"2006-01-02",
+	}
+	for _, layout := range layouts {
+		if parsed, err := time.Parse(layout, value); err == nil {
+			return parsed, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("parse sqlite time %q", value)
 }
 
 func payloadOrDefault(value string) string {

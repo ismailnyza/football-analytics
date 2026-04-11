@@ -52,6 +52,69 @@ func TestCreateWorldAssignsLastInsertID(t *testing.T) {
 	}
 }
 
+func TestListWorldsReturnsRows(t *testing.T) {
+	store := newStoreFromBeginTxer(&fakeDB{
+		queryRows: map[string]*fakeRows{
+			"FROM worlds": {
+				values: [][]any{
+					{int64(1), "Local Career", int64(7), time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)},
+				},
+			},
+		},
+	})
+
+	worlds, err := store.ListWorlds(context.Background())
+	if err != nil {
+		t.Fatalf("ListWorlds() error = %v", err)
+	}
+	if len(worlds) != 1 {
+		t.Fatalf("ListWorlds() len = %d, want 1", len(worlds))
+	}
+	if worlds[0].Name != "Local Career" {
+		t.Fatalf("ListWorlds()[0].Name = %q, want %q", worlds[0].Name, "Local Career")
+	}
+}
+
+func TestListSeasonsByBranchReturnsRows(t *testing.T) {
+	store := newStoreFromBeginTxer(&fakeDB{
+		queryRows: map[string]*fakeRows{
+			"FROM seasons": {
+				values: [][]any{
+					{int64(7), int64(1), "Season Lab 1", 2026},
+				},
+			},
+		},
+	})
+
+	seasons, err := store.ListSeasonsByBranch(context.Background(), 1)
+	if err != nil {
+		t.Fatalf("ListSeasonsByBranch() error = %v", err)
+	}
+	if len(seasons) != 1 || seasons[0].Label != "Season Lab 1" {
+		t.Fatalf("ListSeasonsByBranch() = %#v", seasons)
+	}
+}
+
+func TestListMatchesBySeasonReturnsRows(t *testing.T) {
+	store := newStoreFromBeginTxer(&fakeDB{
+		queryRows: map[string]*fakeRows{
+			"FROM matches m": {
+				values: [][]any{
+					{int64(3), int64(11), int64(1), 2, 1, 900, int64(42), "completed", time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)},
+				},
+			},
+		},
+	})
+
+	matches, err := store.ListMatchesBySeason(context.Background(), 1)
+	if err != nil {
+		t.Fatalf("ListMatchesBySeason() error = %v", err)
+	}
+	if len(matches) != 1 || matches[0].FixtureID != 11 {
+		t.Fatalf("ListMatchesBySeason() = %#v", matches)
+	}
+}
+
 func TestListPlayersByClubDecodesPositions(t *testing.T) {
 	clubID := int64(99)
 	birthDate := time.Date(2000, 2, 3, 0, 0, 0, 0, time.UTC)
@@ -227,6 +290,12 @@ func assign(dest []any, values []any) error {
 		case *time.Time:
 			*d = values[i].(time.Time)
 		default:
+			if scanner, ok := dest[i].(interface{ Scan(any) error }); ok {
+				if err := scanner.Scan(values[i]); err != nil {
+					return err
+				}
+				continue
+			}
 			return errors.New("unsupported scan destination")
 		}
 	}
