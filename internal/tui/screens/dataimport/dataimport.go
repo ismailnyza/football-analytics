@@ -41,6 +41,7 @@ type Model struct {
 	staged     []ingestion.SourceRecord
 	preview    []string
 	published  []string
+	persisted  []string
 	cursor     int
 	scroll     int
 	status     string
@@ -51,6 +52,11 @@ type Model struct {
 
 type fetchFinishedMsg struct {
 	err error
+}
+
+type publishFinishedMsg struct {
+	count int
+	err   error
 }
 
 func New(cfg app.Config) Model {
@@ -101,6 +107,7 @@ func (m Model) reload() Model {
 func (m Model) loadStagedForSelection() Model {
 	if m.stateDir == "" || len(m.sources) == 0 || m.cursor >= len(m.sources) {
 		m.staged = nil
+		m.persisted = nil
 		return m
 	}
 	store, closeFn, err := ingestion.NewSQLiteStagingStore(m.stateDir)
@@ -118,6 +125,12 @@ func (m Model) loadStagedForSelection() Model {
 	m.staged = records
 	m.preview = buildPreviewLines(records)
 	m.published = buildPublishedLines(records)
+	publishedEntities, err := store.ListPublishedBySource(context.Background(), m.sources[m.cursor].Name)
+	if err != nil {
+		m.persisted = nil
+		return m
+	}
+	m.persisted = buildPersistedLines(publishedEntities)
 	return m
 }
 
@@ -186,6 +199,24 @@ func buildPublishedLines(records []ingestion.SourceRecord) []string {
 	return lines
 }
 
+func buildPersistedLines(entities []ingestion.PublishedEntity) []string {
+	lines := make([]string, 0, min(len(entities), 5))
+	for _, entity := range entities[:min(len(entities), 5)] {
+		state := "valid"
+		if !entity.Validation.Valid {
+			state = "invalid"
+		}
+		lines = append(lines, fmt.Sprintf(
+			"  %-7s id:%-3d %-18s %s",
+			state,
+			entity.ResolvedID,
+			truncate(entity.Name, 18),
+			truncate(entity.EntityType, 8),
+		))
+	}
+	return lines
+}
+
 func normalizeForPreview(record ingestion.SourceRecord) (ingestion.NormalizedRecord, ingestion.ValidationResult, bool) {
 	switch record.SourceName {
 	case "fbref":
@@ -233,6 +264,14 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			next.status = msg.err.Error()
 		} else {
 			next.status = "ingest run finished"
+		}
+		return next, nil
+	case publishFinishedMsg:
+		next := m.reload()
+		if msg.err != nil {
+			next.status = msg.err.Error()
+		} else {
+			next.status = fmt.Sprintf("published %d entities", msg.count)
 		}
 		return next, nil
 	case tea.KeyMsg:
@@ -289,6 +328,13 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			}
 			m.status = "fbref scrape…"
 			return m, runFbrefScrapeCmd(m.stateDir, u)
+		case "p":
+			if m.stateDir == "" || len(m.sources) == 0 || m.cursor >= len(m.sources) {
+				m.status = "no source selected"
+				return m, nil
+			}
+			m.status = "publishing…"
+			return m, runPublishCmd(m.stateDir, m.sources[m.cursor].Name)
 		case "u":
 			m.editingURL = true
 			m.urlInput.Focus()
@@ -389,6 +435,12 @@ func (m Model) View(width, height int) string {
 				}
 			}
 		}
+		if len(m.persisted) > 0 {
+			lines = append(lines, titleStyle.Render("Published Entities"))
+			for _, line := range m.persisted {
+				lines = append(lines, dimStyle.Render(line))
+			}
+		}
 	}
 
 	if m.status != "" {
@@ -413,7 +465,7 @@ func (m Model) View(width, height int) string {
 	}
 
 	lines = append(lines, "",
-		dimStyle.Render("  r reload  f demo fetch  u edit fbref URL  s scrape current URL"),
+		dimStyle.Render("  r reload  f demo fetch  u edit fbref URL  s scrape current URL  p publish source"),
 	)
 
 	bodyH := height - 4
@@ -435,7 +487,7 @@ func (m Model) View(width, height int) string {
 	}
 
 	body := strings.Join(lines[start:end], "\n")
-	help := "j/k navigate  r reload  f demo  u edit URL  s scrape"
+	help := "j/k navigate  r reload  f demo  u edit URL  s scrape  p publish"
 	if m.editingURL {
 		help = "type/paste URL  enter save  esc cancel"
 	}
@@ -471,6 +523,18 @@ func runFbrefScrapeCmd(stateDir, pageURL string) tea.Cmd {
 	return func() tea.Msg {
 		err := ingestion.RunFbrefScrape(context.Background(), stateDir, pageURL, time.Now())
 		return fetchFinishedMsg{err: err}
+	}
+}
+
+func runPublishCmd(stateDir, source string) tea.Cmd {
+	return func() tea.Msg {
+		store, closeFn, err := ingestion.NewSQLiteStagingStore(stateDir)
+		if err != nil {
+			return publishFinishedMsg{err: err}
+		}
+		defer closeFn()
+		count, err := ingestion.PublishSourceRecords(context.Background(), store, source)
+		return publishFinishedMsg{count: count, err: err}
 	}
 }
 

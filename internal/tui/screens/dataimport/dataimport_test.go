@@ -142,3 +142,49 @@ func TestView_showsNormalizedPreviewForFbref(t *testing.T) {
 		t.Fatal("expected publish preview section")
 	}
 }
+
+func TestUpdate_pPublishesSelectedSource(t *testing.T) {
+	dir := t.TempDir()
+	store, closeFn, err := ingestion.NewSQLiteStagingStore(dir)
+	if err != nil {
+		t.Fatalf("NewSQLiteStagingStore() error = %v", err)
+	}
+	defer closeFn()
+	if err := store.StageRecord(context.Background(), ingestion.SourceRecord{
+		SourceName: "fbref",
+		EntityType: "player",
+		ExternalID: "fb-1",
+		RawJSON:    `{"player":"Ada Demo","pos":"FW","nation":"eng England"}`,
+		FetchedAt:  time.Now(),
+	}); err != nil {
+		t.Fatalf("StageRecord() error = %v", err)
+	}
+	reg, err := ingestion.LoadOrCreateRegistry(dir)
+	if err != nil {
+		t.Fatalf("LoadOrCreateRegistry() error = %v", err)
+	}
+	reg.RecordRun("fbref", time.Now(), 1, 0, 0, nil)
+	if err := reg.Save(); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	m := NewWithStateDir(dir)
+	msg := runPublishCmd(dir, "fbref")()
+	m, _ = m.Update(msg)
+	if !strings.Contains(m.status, "published 1 entities") {
+		t.Fatalf("status = %q", m.status)
+	}
+
+	published, err := store.ListPublishedBySource(context.Background(), "fbref")
+	if err != nil {
+		t.Fatalf("ListPublishedBySource() error = %v", err)
+	}
+	if len(published) != 1 {
+		t.Fatalf("published len = %d, want 1", len(published))
+	}
+
+	view := m.View(120, 40)
+	if !strings.Contains(view, "Published Entities") {
+		t.Fatal("expected published entities section")
+	}
+}

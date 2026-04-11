@@ -3,6 +3,7 @@ package ingestion
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -14,6 +15,17 @@ import (
 // SQLiteStagingStore persists staged ingest records in the app SQLite database.
 type SQLiteStagingStore struct {
 	db *sql.DB
+}
+
+type PublishedEntity struct {
+	SourceCode  string
+	ExternalID  string
+	EntityType  string
+	ResolvedID  int64
+	Name        string
+	Attributes  map[string]string
+	Validation  ValidationResult
+	PublishedAt time.Time
 }
 
 func NewSQLiteStagingStore(stateDir string) (*SQLiteStagingStore, func() error, error) {
@@ -140,4 +152,153 @@ func resolveSQLiteStateStore(stateDir string) (*SQLiteStagingStore, func() error
 		return nil, nil, err
 	}
 	return store, closeFn, nil
+}
+
+func (s *SQLiteStagingStore) SavePublished(ctx context.Context, entity PublishedEntity) error {
+	attrsJSON, err := json.Marshal(entity.Attributes)
+	if err != nil {
+		return fmt.Errorf("marshal attributes: %w", err)
+	}
+	validationJSON, err := json.Marshal(entity.Validation)
+	if err != nil {
+		return fmt.Errorf("marshal validation: %w", err)
+	}
+	publishedAt := entity.PublishedAt
+	if publishedAt.IsZero() {
+		publishedAt = time.Now().UTC()
+	}
+	_, err = s.db.ExecContext(
+		ctx,
+		`INSERT INTO published_entities(source_code, external_id, entity_type, resolved_id, name, attributes_json, validation_json, published_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		entity.SourceCode,
+		entity.ExternalID,
+		entity.EntityType,
+		entity.ResolvedID,
+		entity.Name,
+		string(attrsJSON),
+		string(validationJSON),
+		publishedAt.Format(time.RFC3339Nano),
+	)
+	if err != nil {
+		return fmt.Errorf("insert published entity: %w", err)
+	}
+	return nil
+}
+
+func (s *SQLiteStagingStore) ListPublishedBySource(ctx context.Context, source string) ([]PublishedEntity, error) {
+	query := `SELECT source_code, external_id, entity_type, resolved_id, name, attributes_json, validation_json, published_at
+		FROM published_entities`
+	args := make([]any, 0, 1)
+	if source != "" {
+		query += ` WHERE source_code = ?`
+		args = append(args, source)
+	}
+	query += ` ORDER BY id DESC`
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("query published entities: %w", err)
+	}
+	defer rows.Close()
+
+	var out []PublishedEntity
+	for rows.Next() {
+		var entity PublishedEntity
+		var attrsJSON string
+		var validationJSON string
+		var publishedAt string
+		if err := rows.Scan(
+			&entity.SourceCode,
+			&entity.ExternalID,
+			&entity.EntityType,
+			&entity.ResolvedID,
+			&entity.Name,
+			&attrsJSON,
+			&validationJSON,
+			&publishedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan published entity: %w", err)
+		}
+		if err := json.Unmarshal([]byte(attrsJSON), &entity.Attributes); err != nil {
+			return nil, fmt.Errorf("unmarshal published attributes: %w", err)
+		}
+		if err := json.Unmarshal([]byte(validationJSON), &entity.Validation); err != nil {
+			return nil, fmt.Errorf("unmarshal published validation: %w", err)
+		}
+		if publishedAt != "" {
+			if parsed, err := time.Parse(time.RFC3339Nano, publishedAt); err == nil {
+				entity.PublishedAt = parsed
+			}
+		}
+		out = append(out, entity)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate published entities: %w", err)
+	}
+	return out, nil
+}
+
+func PublishSourceRecords(ctx context.Context, store *SQLiteStagingStore, source string) (int, error) {
+	records, err := store.ListStaged(ctx, source, "")
+	if err != nil {
+		return 0, err
+	}
+	if len(records) == 0 {
+		return 0, nil
+	}
+	existing, err := store.ListPublishedBySource(ctx, "")
+	if err != nil {
+		return 0, err
+	}
+	known := make(map[string]int64, len(existing))
+	for _, entity := range existing {
+		known[entity.Name] = entity.ResolvedID
+	}
+	resolver := NewEntityResolver(known)
+	published := 0
+	for _, record := range records {
+		norm, validation, ok := normalizeForPublish(record)
+		if !ok {
+			continue
+		}
+		match := resolver.Resolve(norm)
+		if err := store.SavePublished(ctx, PublishedEntity{
+			SourceCode:  record.SourceName,
+			ExternalID:  record.ExternalID,
+			EntityType:  norm.EntityType,
+			ResolvedID:  match.ResolvedID,
+			Name:        norm.Name,
+			Attributes:  norm.Attributes,
+			Validation:  validation,
+			PublishedAt: time.Now().UTC(),
+		}); err != nil {
+			return published, err
+		}
+		if err := store.MarkProcessed(ctx, record.SourceName, record.ExternalID); err != nil {
+			return published, err
+		}
+		published++
+	}
+	return published, nil
+}
+
+func normalizeForPublish(record SourceRecord) (NormalizedRecord, ValidationResult, bool) {
+	switch record.SourceName {
+	case "fbref":
+		norm, err := NormalizeFbrefPlayerRecord(record)
+		if err != nil {
+			return NormalizedRecord{}, ValidationResult{}, false
+		}
+		return norm, ValidatePlayerRecord(norm.Attributes), true
+	default:
+		norm := NormalizedRecord{
+			SourceName: record.SourceName,
+			ExternalID: record.ExternalID,
+			EntityType: record.EntityType,
+			Name:       record.ExternalID,
+			Attributes: map[string]string{"name": record.ExternalID},
+		}
+		validation := ValidationResult{EntityType: record.EntityType, ExternalID: record.ExternalID, Valid: true}
+		return norm, validation, true
+	}
 }

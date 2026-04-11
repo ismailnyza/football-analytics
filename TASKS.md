@@ -96,6 +96,7 @@ Status values:
 Build on the SQLite-backed runtime with richer world workflows:
 - expose branch creation and replay workflows more broadly across saved history outside Match/Season Lab
 - consider persisting richer match summary detail for higher-fidelity replay views
+- add editing/review controls for published entities once they exist in the SQLite publish store
 
 ---
 
@@ -130,4 +131,5 @@ Build on the SQLite-backed runtime with richer world workflows:
 - `Scenarios` now updates shared active-branch runtime state, Data / Import shows staged raw payload previews per source, and Match Lab can create a new replay branch from a saved match.
 - Data / Import now renders normalized FBref preview rows from staged payloads, Season Lab can create replay branches from saved seasons, and replay reconstruction now restores cards/injuries/suspensions from persisted match events.
 - Data / Import now also renders publish-candidate previews with provisional resolved IDs and validation state for staged records.
+- Data / Import can now publish the selected source into a SQLite `published_entities` store with `p`, mark staged rows processed, and browse the persisted published entities in-screen.
 - Always update `docs/IMPLEMENTATION_TRACKER.md` when task status changes.
