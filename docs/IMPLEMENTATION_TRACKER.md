@@ -29,10 +29,11 @@ This file is the single truth ledger for implementation, review, and test status
 | SEC-024 Injury engine | TESTED | Added deterministic injury triggering from fatigue/load, injury event emission, stable injury summaries, and tests for deterministic injury records and high-fatigue trigger conditions. |
 | SEC-025 Cards and suspension system | TESTED | Added deterministic yellow/red card generation, tracked red-card suspensions in match summaries, and tested deterministic card output plus high-fatigue trigger conditions. |
 | SEC-026 Set piece engine | TESTED | Added deterministic corner, free-kick, and penalty branches in action resolution, including set-piece goals and clearances, with event-type and trigger-path tests. |
+| SEC-027 Match persistence and stats aggregation | TESTED | Added aggregate match stats to summaries and a simulation service helper that persists match rows plus event logs through the repository contracts, with service tests for event backfilling and error propagation. |
 
 ## Risks and caveats
 
 - The branch is intentionally reset; previous Python implementation files were removed rather than migrated.
 - The project now depends on Bubble Tea, Bubbles, and Lip Gloss for the TUI shell.
 - SQLite repository logic exists, but no external SQLite driver dependency has been added yet for live integration tests.
-- The next task should persist match outputs and aggregate stats into repository-friendly structures on top of the current set-piece-aware loop.
+- The next task should expose the match engine through a real Match Lab screen in the Bubble Tea UI.

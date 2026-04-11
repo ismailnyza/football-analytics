@@ -193,6 +193,18 @@ func TestResolveSetPieceTypeCanTriggerDeterministically(t *testing.T) {
 	t.Fatal("expected at least one deterministic set-piece trigger")
 }
 
+func TestSummaryAggregatesStatsFromEvents(t *testing.T) {
+	home, away := samplePlans()
+
+	summary := RunTickLoop(24, home, away, 180)
+	if summary.Stats.Goals != summary.HomeGoals+summary.AwayGoals {
+		t.Fatalf("stats goals = %d, want %d", summary.Stats.Goals, summary.HomeGoals+summary.AwayGoals)
+	}
+	if summary.Stats.BuildUps == 0 {
+		t.Fatal("expected at least one build-up event in stats")
+	}
+}
+
 func samplePlans() (TeamPlan, TeamPlan) {
 	homeAssignments, _ := SelectLineup(sampleSquad(), "4-3-3", nil)
 	awaySquad := append([]domain.Player(nil), sampleSquad()...)

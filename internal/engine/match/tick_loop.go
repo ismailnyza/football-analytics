@@ -52,6 +52,7 @@ type Summary struct {
 	Injuries           []Injury
 	Cards              []CardRecord
 	Suspensions        []Suspension
+	Stats              MatchStats
 	Events             []domain.MatchEvent
 }
 
@@ -82,6 +83,20 @@ type Suspension struct {
 	Team     string
 	Reason   string
 	Matches  int
+}
+
+// MatchStats is an aggregate count view over the simulated event log.
+type MatchStats struct {
+	BuildUps     int
+	Penetrations int
+	Shots        int
+	Goals        int
+	Saves        int
+	Blocks       int
+	Turnovers    int
+	SetPieces    int
+	Cards        int
+	Injuries     int
 }
 
 // BuildTeamPlan derives deterministic team strengths from the selected lineup.
@@ -161,6 +176,7 @@ func RunTickLoop(seed int64, home, away TeamPlan, ticks int) Summary {
 		Injuries:           flattenInjuries(state.HomeInjured, state.AwayInjured),
 		Cards:              append([]CardRecord(nil), state.Cards...),
 		Suspensions:        append([]Suspension(nil), state.Suspensions...),
+		Stats:              aggregateStats(state.Events),
 		Events:             state.Events,
 	}
 }
@@ -559,4 +575,33 @@ func cardEvent(record CardRecord, state *State) domain.MatchEvent {
 			state.AwayGoals,
 		),
 	}
+}
+
+func aggregateStats(events []domain.MatchEvent) MatchStats {
+	var stats MatchStats
+	for _, event := range events {
+		switch event.Type {
+		case "build_up":
+			stats.BuildUps++
+		case "penetration":
+			stats.Penetrations++
+		case "shot":
+			stats.Shots++
+		case "goal":
+			stats.Goals++
+		case "save":
+			stats.Saves++
+		case "block":
+			stats.Blocks++
+		case "turnover":
+			stats.Turnovers++
+		case "corner", "free_kick", "penalty":
+			stats.SetPieces++
+		case "yellow", "red":
+			stats.Cards++
+		case "injury":
+			stats.Injuries++
+		}
+	}
+	return stats
 }
