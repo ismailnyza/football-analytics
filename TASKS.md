@@ -29,7 +29,7 @@ Status values:
 - [x] SEC-020 Lineup selection engine
 - [x] SEC-021 Match engine tick loop
 - [x] SEC-022 Match action resolution
-- [ ] SEC-023 Fatigue system
+- [x] SEC-023 Fatigue system
 - [ ] SEC-024 Injury engine
 - [ ] SEC-025 Cards and suspension system
 - [ ] SEC-026 Set piece engine
@@ -84,7 +84,7 @@ Status values:
 
 ## Immediate next task
 
-`SEC-023 Fatigue system`
+`SEC-024 Injury engine`
 
 ---
 
@@ -98,4 +98,5 @@ Status values:
 - `SEC-020` now provides deterministic formation templates and lineup selection with locked-player support.
 - `SEC-021` now provides a deterministic 900-tick match loop skeleton with possession and chance generation.
 - `SEC-022` now resolves attacking phases into build-up, penetration, shots, saves, blocks, goals, and turnovers.
+- `SEC-023` now applies deterministic per-lineup fatigue accumulation and strength degradation across ticks.
 - Always update `docs/IMPLEMENTATION_TRACKER.md` when task status changes.

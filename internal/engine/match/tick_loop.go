@@ -23,20 +23,24 @@ type TeamPlan struct {
 
 // State is the deterministic in-memory match state across ticks.
 type State struct {
-	Seed       int64
-	Tick       int
-	HomeGoals  int
-	AwayGoals  int
-	Possession string
-	Events     []domain.MatchEvent
+	Seed        int64
+	Tick        int
+	HomeGoals   int
+	AwayGoals   int
+	Possession  string
+	HomeFatigue map[int64]float64
+	AwayFatigue map[int64]float64
+	Events      []domain.MatchEvent
 }
 
 // Summary is the terminal output of the tick loop.
 type Summary struct {
-	TotalTicks int
-	HomeGoals  int
-	AwayGoals  int
-	Events     []domain.MatchEvent
+	TotalTicks         int
+	HomeGoals          int
+	AwayGoals          int
+	HomeAverageFatigue float64
+	AwayAverageFatigue float64
+	Events             []domain.MatchEvent
 }
 
 type attackPhase struct {
@@ -71,32 +75,40 @@ func RunTickLoop(seed int64, home, away TeamPlan, ticks int) Summary {
 	}
 
 	state := State{
-		Seed:       seed,
-		Possession: "home",
-		Events:     make([]domain.MatchEvent, 0, ticks/6),
+		Seed:        seed,
+		Possession:  "home",
+		HomeFatigue: initialFatigue(home.Lineup),
+		AwayFatigue: initialFatigue(away.Lineup),
+		Events:      make([]domain.MatchEvent, 0, ticks/6),
 	}
 
 	for tick := 1; tick <= ticks; tick++ {
 		state.Tick = tick
-		state.Possession = possessionForTick(seed, tick, home, away)
+		effectiveHome := fatigueAdjustedPlan(home, state.HomeFatigue)
+		effectiveAway := fatigueAdjustedPlan(away, state.AwayFatigue)
+		state.Possession = possessionForTick(seed, tick, effectiveHome, effectiveAway)
 
-		attacking := home
-		defending := away
+		attacking := effectiveHome
+		defending := effectiveAway
 		if state.Possession == "away" {
-			attacking = away
-			defending = home
+			attacking = effectiveAway
+			defending = effectiveHome
 		}
 
 		for _, event := range resolveTickActions(seed, tick, attacking, defending, state.Possession, &state) {
 			state.Events = append(state.Events, event)
 		}
+		applyFatigueTick(state.HomeFatigue, home.Lineup, state.Possession == "home")
+		applyFatigueTick(state.AwayFatigue, away.Lineup, state.Possession == "away")
 	}
 
 	return Summary{
-		TotalTicks: ticks,
-		HomeGoals:  state.HomeGoals,
-		AwayGoals:  state.AwayGoals,
-		Events:     state.Events,
+		TotalTicks:         ticks,
+		HomeGoals:          state.HomeGoals,
+		AwayGoals:          state.AwayGoals,
+		HomeAverageFatigue: averageFatigue(state.HomeFatigue),
+		AwayAverageFatigue: averageFatigue(state.AwayFatigue),
+		Events:             state.Events,
 	}
 }
 
@@ -211,4 +223,56 @@ func makeEvent(tick, minute int, eventType, zone string, team TeamPlan, state *S
 			state.AwayGoals,
 		),
 	}
+}
+
+func initialFatigue(lineup []Assignment) map[int64]float64 {
+	fatigue := make(map[int64]float64, len(lineup))
+	for _, assignment := range lineup {
+		fatigue[assignment.Player.ID] = 0
+	}
+	return fatigue
+}
+
+func applyFatigueTick(fatigue map[int64]float64, lineup []Assignment, inPossession bool) {
+	for _, assignment := range lineup {
+		load := fatigueLoad(assignment)
+		if inPossession {
+			load += 0.015
+		}
+		fatigue[assignment.Player.ID] += load
+	}
+}
+
+func fatigueLoad(assignment Assignment) float64 {
+	if assignment.Player.PrimaryPosition == domain.PositionGK {
+		return 0.008
+	}
+	switch assignment.Slot.Code {
+	case "RB", "LB", "RW", "LW", "RM", "LM":
+		return 0.032
+	case "ST", "RST", "LST":
+		return 0.028
+	default:
+		return 0.024
+	}
+}
+
+func fatigueAdjustedPlan(plan TeamPlan, fatigue map[int64]float64) TeamPlan {
+	adjusted := plan
+	average := averageFatigue(fatigue)
+	adjusted.Attack = max(20, plan.Attack-int(average/3.5))
+	adjusted.Control = max(20, plan.Control-int(average/3.0))
+	adjusted.Defence = max(20, plan.Defence-int(average/4.0))
+	return adjusted
+}
+
+func averageFatigue(fatigue map[int64]float64) float64 {
+	if len(fatigue) == 0 {
+		return 0
+	}
+	total := 0.0
+	for _, value := range fatigue {
+		total += value
+	}
+	return total / float64(len(fatigue))
 }

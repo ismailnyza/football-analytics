@@ -69,6 +69,39 @@ func TestBuildTeamPlanDerivesStableRatings(t *testing.T) {
 	}
 }
 
+func TestRunTickLoopAccumulatesFatigue(t *testing.T) {
+	home, away := samplePlans()
+
+	summary := RunTickLoop(11, home, away, 90)
+	if summary.HomeAverageFatigue <= 0 {
+		t.Fatalf("HomeAverageFatigue = %f, want > 0", summary.HomeAverageFatigue)
+	}
+	if summary.AwayAverageFatigue <= 0 {
+		t.Fatalf("AwayAverageFatigue = %f, want > 0", summary.AwayAverageFatigue)
+	}
+}
+
+func TestFatigueAdjustedPlanReducesStrength(t *testing.T) {
+	assignments, err := SelectLineup(sampleSquad(), "4-3-3", nil)
+	if err != nil {
+		t.Fatalf("SelectLineup() error = %v", err)
+	}
+
+	base := BuildTeamPlan(domain.Club{Name: "Arsenal", ShortName: "ARS"}, assignments)
+	fatigue := initialFatigue(assignments)
+	for i := 0; i < 300; i++ {
+		applyFatigueTick(fatigue, assignments, true)
+	}
+
+	adjusted := fatigueAdjustedPlan(base, fatigue)
+	if adjusted.Attack >= base.Attack {
+		t.Fatalf("adjusted attack = %d, want less than %d", adjusted.Attack, base.Attack)
+	}
+	if adjusted.Control >= base.Control {
+		t.Fatalf("adjusted control = %d, want less than %d", adjusted.Control, base.Control)
+	}
+}
+
 func samplePlans() (TeamPlan, TeamPlan) {
 	homeAssignments, _ := SelectLineup(sampleSquad(), "4-3-3", nil)
 	awaySquad := append([]domain.Player(nil), sampleSquad()...)
