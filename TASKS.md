@@ -32,7 +32,7 @@ Status values:
 - [x] SEC-023 Fatigue system
 - [x] SEC-024 Injury engine
 - [x] SEC-025 Cards and suspension system
-- [ ] SEC-026 Set piece engine
+- [x] SEC-026 Set piece engine
 - [ ] SEC-027 Match persistence and stats aggregation
 - [ ] SEC-011 Match Lab screen
 - [ ] SEC-012 Match result and event log screens
@@ -84,7 +84,7 @@ Status values:
 
 ## Immediate next task
 
-`SEC-026 Set piece engine`
+`SEC-027 Match persistence and stats aggregation`
 
 ---
 
@@ -101,4 +101,5 @@ Status values:
 - `SEC-023` now applies deterministic per-lineup fatigue accumulation and strength degradation across ticks.
 - `SEC-024` now applies deterministic fatigue-driven injury triggering and injury events during matches.
 - `SEC-025` now applies deterministic yellow/red card events and immediate red-card suspensions during matches.
+- `SEC-026` now routes some advanced attacks into deterministic corners, free kicks, and penalties.
 - Always update `docs/IMPLEMENTATION_TRACKER.md` when task status changes.

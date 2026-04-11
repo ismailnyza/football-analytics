@@ -203,6 +203,20 @@ func resolveTickActions(seed int64, tick int, attacking, defending TeamPlan, pos
 	}
 
 	events = append(events, makeEvent(tick, minute, "penetration", phase.zone, attacking, state))
+	if setPiece, ok := resolveSetPieceType(seed, tick, attacking, defending); ok {
+		events = append(events, makeEvent(tick, minute, setPiece, phase.zone, attacking, state))
+		if resolveSetPieceGoal(seed, tick, setPiece, attacking, defending) {
+			if possession == "home" {
+				state.HomeGoals++
+			} else {
+				state.AwayGoals++
+			}
+			events = append(events, makeEvent(tick, minute, "goal", phase.zone, attacking, state))
+			return events
+		}
+		events = append(events, makeEvent(tick, minute, "clearance", phase.zone, defending, state))
+		return events
+	}
 	switch resolveShotOutcome(seed, tick, attacking, defending) {
 	case "goal":
 		if possession == "home" {
@@ -223,6 +237,36 @@ func resolveTickActions(seed int64, tick int, attacking, defending TeamPlan, pos
 	}
 
 	return events
+}
+
+func resolveSetPieceType(seed int64, tick int, attacking, defending TeamPlan) (string, bool) {
+	window := (tick + int(seed%37) + attacking.Control - defending.Defence) % 17
+	switch window {
+	case 0:
+		return "corner", true
+	case 1:
+		return "free_kick", true
+	case 2:
+		if attacking.Attack > defending.Defence/2 {
+			return "penalty", true
+		}
+	}
+	return "", false
+}
+
+func resolveSetPieceGoal(seed int64, tick int, setPiece string, attacking, defending TeamPlan) bool {
+	base := attacking.Attack + attacking.Control - defending.Defence
+	modifier := 0
+	switch setPiece {
+	case "corner":
+		modifier = 2
+	case "free_kick":
+		modifier = 3
+	case "penalty":
+		modifier = 5
+	}
+	window := (tick*2 + int(seed%41) + max(base, -20) + modifier) % 9
+	return window == 0
 }
 
 func resolveAttackPhase(seed int64, tick int, attacking, defending TeamPlan) attackPhase {

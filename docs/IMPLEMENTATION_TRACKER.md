@@ -28,10 +28,11 @@ This file is the single truth ledger for implementation, review, and test status
 | SEC-023 Fatigue system | TESTED | Added deterministic per-player fatigue accumulation by slot and possession load, exposed average fatigue in match summaries, and tested that fatigue builds over time and reduces effective team strength. |
 | SEC-024 Injury engine | TESTED | Added deterministic injury triggering from fatigue/load, injury event emission, stable injury summaries, and tests for deterministic injury records and high-fatigue trigger conditions. |
 | SEC-025 Cards and suspension system | TESTED | Added deterministic yellow/red card generation, tracked red-card suspensions in match summaries, and tested deterministic card output plus high-fatigue trigger conditions. |
+| SEC-026 Set piece engine | TESTED | Added deterministic corner, free-kick, and penalty branches in action resolution, including set-piece goals and clearances, with event-type and trigger-path tests. |
 
 ## Risks and caveats
 
 - The branch is intentionally reset; previous Python implementation files were removed rather than migrated.
 - The project now depends on Bubble Tea, Bubbles, and Lip Gloss for the TUI shell.
 - SQLite repository logic exists, but no external SQLite driver dependency has been added yet for live integration tests.
-- The next task should add deterministic set-piece resolution on top of the current injury- and discipline-aware match loop.
+- The next task should persist match outputs and aggregate stats into repository-friendly structures on top of the current set-piece-aware loop.

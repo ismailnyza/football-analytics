@@ -30,7 +30,7 @@ func TestRunTickLoopTracksTickCountAndEvents(t *testing.T) {
 			t.Fatalf("event tick = %d out of range", event.Tick)
 		}
 		switch event.Type {
-		case "build_up", "penetration", "shot", "goal", "save", "block", "turnover", "injury", "yellow", "red":
+		case "build_up", "penetration", "shot", "goal", "save", "block", "turnover", "injury", "yellow", "red", "corner", "free_kick", "penalty", "clearance":
 		default:
 			t.Fatalf("unexpected event type %q", event.Type)
 		}
@@ -171,6 +171,26 @@ func TestMaybeCardTeamTriggersForHighFatigueCandidate(t *testing.T) {
 	if record.Card == "" {
 		t.Fatal("record card is empty")
 	}
+}
+
+func TestResolveSetPieceTypeCanTriggerDeterministically(t *testing.T) {
+	home, away := samplePlans()
+
+	for seed := int64(1); seed <= 20; seed++ {
+		for tick := 1; tick <= 40; tick++ {
+			setPiece, ok := resolveSetPieceType(seed, tick, home, away)
+			if !ok {
+				continue
+			}
+			switch setPiece {
+			case "corner", "free_kick", "penalty":
+				return
+			default:
+				t.Fatalf("unexpected set piece %q", setPiece)
+			}
+		}
+	}
+	t.Fatal("expected at least one deterministic set-piece trigger")
 }
 
 func samplePlans() (TeamPlan, TeamPlan) {
