@@ -106,8 +106,12 @@ func player(id int64, firstName, lastName string, primary domain.Position, secon
 		PrimaryPosition:    primary,
 		SecondaryPositions: secondary,
 		Attributes: domain.PlayerAttributes{
-			Overall: overall,
-			Keeping: overall,
+			Overall:   overall,
+			Pace:      overall - 5,
+			Shooting:  overall - 4,
+			Passing:   overall - 6,
+			Defending: overall - 7,
+			Keeping:   overall,
 		},
 	}
 }

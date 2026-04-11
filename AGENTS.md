@@ -17,6 +17,7 @@ Read these files first:
 - respect TUI-first design
 - commit only passing work
 - push passing commits when remote access is available
+- reuse already-approved command permissions when the same capability is needed again
 
 ## Required output after work
 

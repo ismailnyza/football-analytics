@@ -111,6 +111,10 @@ If a check fails, fix the issue and rerun the checks.
 Only commit after the checks pass.
 If a remote branch exists, push the passing commit before handing off.
 
+### Rule 7: Reuse approved permissions
+When command permissions or prefix approvals have already been granted in this workspace, agents should reuse them instead of asking again for the same capability.
+Treat existing approvals as durable for later agent work on the same repository unless the action is materially broader or more destructive.
+
 ---
 
 ## Required reading order for agents
@@ -250,6 +254,7 @@ A unit of work is only done when:
 - `TASKS.md` and `docs/IMPLEMENTATION_TRACKER.md` were both updated
 - the passing change was committed
 - the passing commit was pushed when push access is available
+- already-approved command permissions were reused when applicable
 
 ---
 

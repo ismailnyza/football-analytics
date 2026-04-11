@@ -27,7 +27,7 @@ Status values:
 ## Phase B: Core Match Simulation
 
 - [x] SEC-020 Lineup selection engine
-- [ ] SEC-021 Match engine tick loop
+- [x] SEC-021 Match engine tick loop
 - [ ] SEC-022 Match action resolution
 - [ ] SEC-023 Fatigue system
 - [ ] SEC-024 Injury engine
@@ -84,7 +84,7 @@ Status values:
 
 ## Immediate next task
 
-`SEC-021 Match engine tick loop`
+`SEC-022 Match action resolution`
 
 ---
 
@@ -96,4 +96,5 @@ Status values:
 - `SEC-005` currently covers repository interfaces and a SQLite SQL store layer with migration support and CRUD/list foundations.
 - `SEC-007` now provides a Bubble Tea app shell with top bar, navigation, main content area, and status/help bar.
 - `SEC-020` now provides deterministic formation templates and lineup selection with locked-player support.
+- `SEC-021` now provides a deterministic 900-tick match loop skeleton with possession and chance generation.
 - Always update `docs/IMPLEMENTATION_TRACKER.md` when task status changes.

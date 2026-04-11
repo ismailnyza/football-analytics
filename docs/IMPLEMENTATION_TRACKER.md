@@ -23,10 +23,11 @@ This file is the single truth ledger for implementation, review, and test status
 | SEC-005 Repository layer | TESTED | Added repository contracts plus a SQLite SQL store with migration execution, create/list methods for core entities, and store-level tests using fakes to verify mapping and migration flow. |
 | SEC-007 TUI app shell and navigation | TESTED | Replaced the placeholder shell with a Bubble Tea app using Lip Gloss and Bubbles-based key bindings, with tests covering navigation and rendered shell regions. |
 | SEC-020 Lineup selection engine | TESTED | Added deterministic formation templates and lineup assignment with locked-player preassignment, goalkeeper constraints, and tests for slot coverage, formation support, and secondary-position use. |
+| SEC-021 Match engine tick loop | TESTED | Added a deterministic match loop skeleton with team plan derivation, possession flow, chance/goal event generation, and repeatability tests across identical inputs. |
 
 ## Risks and caveats
 
 - The branch is intentionally reset; previous Python implementation files were removed rather than migrated.
 - The project now depends on Bubble Tea, Bubbles, and Lip Gloss for the TUI shell.
 - SQLite repository logic exists, but no external SQLite driver dependency has been added yet for live integration tests.
-- The next task should introduce the match tick loop on top of the lineup and domain foundations.
+- The next task should deepen the tick loop into explicit action resolution instead of aggregate chance events.

@@ -17,6 +17,7 @@
 - use seed-driven RNG only
 - document formula changes in tracker notes
 - prefer discrete stable logic over overfitted complexity
+- reuse already-approved command permissions when rerunning the same verification flow
 
 ## Required checks
 - same seed + same inputs => same outputs
