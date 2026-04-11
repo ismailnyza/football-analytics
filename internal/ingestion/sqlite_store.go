@@ -18,6 +18,7 @@ type SQLiteStagingStore struct {
 }
 
 type PublishedEntity struct {
+	ID          int64
 	SourceCode  string
 	ExternalID  string
 	EntityType  string
@@ -187,7 +188,7 @@ func (s *SQLiteStagingStore) SavePublished(ctx context.Context, entity Published
 }
 
 func (s *SQLiteStagingStore) ListPublishedBySource(ctx context.Context, source string) ([]PublishedEntity, error) {
-	query := `SELECT source_code, external_id, entity_type, resolved_id, name, attributes_json, validation_json, published_at
+	query := `SELECT id, source_code, external_id, entity_type, resolved_id, name, attributes_json, validation_json, published_at
 		FROM published_entities`
 	args := make([]any, 0, 1)
 	if source != "" {
@@ -208,6 +209,7 @@ func (s *SQLiteStagingStore) ListPublishedBySource(ctx context.Context, source s
 		var validationJSON string
 		var publishedAt string
 		if err := rows.Scan(
+			&entity.ID,
 			&entity.SourceCode,
 			&entity.ExternalID,
 			&entity.EntityType,
@@ -236,6 +238,35 @@ func (s *SQLiteStagingStore) ListPublishedBySource(ctx context.Context, source s
 		return nil, fmt.Errorf("iterate published entities: %w", err)
 	}
 	return out, nil
+}
+
+func (s *SQLiteStagingStore) UpdatePublished(ctx context.Context, entity PublishedEntity) error {
+	if entity.ID == 0 {
+		return fmt.Errorf("update published entity: missing ID")
+	}
+	attrsJSON, err := json.Marshal(entity.Attributes)
+	if err != nil {
+		return fmt.Errorf("marshal attributes: %w", err)
+	}
+	validationJSON, err := json.Marshal(entity.Validation)
+	if err != nil {
+		return fmt.Errorf("marshal validation: %w", err)
+	}
+	_, err = s.db.ExecContext(
+		ctx,
+		`UPDATE published_entities
+		SET resolved_id = ?, name = ?, attributes_json = ?, validation_json = ?
+		WHERE id = ?`,
+		entity.ResolvedID,
+		entity.Name,
+		string(attrsJSON),
+		string(validationJSON),
+		entity.ID,
+	)
+	if err != nil {
+		return fmt.Errorf("update published entity: %w", err)
+	}
+	return nil
 }
 
 func PublishSourceRecords(ctx context.Context, store *SQLiteStagingStore, source string) (int, error) {

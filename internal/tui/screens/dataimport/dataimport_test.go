@@ -187,4 +187,93 @@ func TestUpdate_pPublishesSelectedSource(t *testing.T) {
 	if !strings.Contains(view, "Published Entities") {
 		t.Fatal("expected published entities section")
 	}
+	if !strings.Contains(view, "Published Detail") {
+		t.Fatal("expected published detail section")
+	}
+}
+
+func TestUpdate_editPublishedEntityName(t *testing.T) {
+	dir := t.TempDir()
+	store, closeFn, err := ingestion.NewSQLiteStagingStore(dir)
+	if err != nil {
+		t.Fatalf("NewSQLiteStagingStore() error = %v", err)
+	}
+	defer closeFn()
+	if err := store.SavePublished(context.Background(), ingestion.PublishedEntity{
+		SourceCode: "fbref",
+		ExternalID: "fb-1",
+		EntityType: "player",
+		ResolvedID: 7,
+		Name:       "Ada Demo",
+		Attributes: map[string]string{
+			"name":        "Ada Demo",
+			"position":    "FW",
+			"nationality": "England",
+		},
+		Validation: ingestion.ValidatePlayerRecord(map[string]string{
+			"name":        "Ada Demo",
+			"position":    "FW",
+			"nationality": "England",
+		}),
+		PublishedAt: time.Now(),
+	}); err != nil {
+		t.Fatalf("SavePublished() error = %v", err)
+	}
+	reg, err := ingestion.LoadOrCreateRegistry(dir)
+	if err != nil {
+		t.Fatalf("LoadOrCreateRegistry() error = %v", err)
+	}
+	reg.RecordRun("fbref", time.Now(), 0, 0, 1, nil)
+	if err := reg.Save(); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	m := NewWithStateDir(dir)
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyTab})
+	if !m.focusPublished {
+		t.Fatal("expected published focus after tab")
+	}
+	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("e")})
+	if !m.editingPublished {
+		t.Fatal("expected published edit mode after e")
+	}
+	m.entityInput.SetValue("Ada Revised")
+	msg := runUpdatePublishedCmd(dir, ingestion.PublishedEntity{
+		ID:         m.persisted[m.publishedCursor].ID,
+		SourceCode: m.persisted[m.publishedCursor].SourceCode,
+		ExternalID: m.persisted[m.publishedCursor].ExternalID,
+		EntityType: m.persisted[m.publishedCursor].EntityType,
+		ResolvedID: m.persisted[m.publishedCursor].ResolvedID,
+		Name:       "Ada Revised",
+		Attributes: map[string]string{
+			"name":        "Ada Revised",
+			"position":    "FW",
+			"nationality": "England",
+		},
+		Validation: ingestion.ValidatePlayerRecord(map[string]string{
+			"name":        "Ada Revised",
+			"position":    "FW",
+			"nationality": "England",
+		}),
+	}, "name")()
+	m, _ = m.Update(msg)
+	if !strings.Contains(m.status, "published entity updated") {
+		t.Fatalf("status = %q", m.status)
+	}
+
+	published, err := store.ListPublishedBySource(context.Background(), "fbref")
+	if err != nil {
+		t.Fatalf("ListPublishedBySource() error = %v", err)
+	}
+	if len(published) != 1 {
+		t.Fatalf("published len = %d, want 1", len(published))
+	}
+	if published[0].Name != "Ada Revised" {
+		t.Fatalf("published name = %q, want Ada Revised", published[0].Name)
+	}
+
+	view := m.View(120, 40)
+	if !strings.Contains(view, "Ada Revised") {
+		t.Fatal("expected updated published name in view")
+	}
 }

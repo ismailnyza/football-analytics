@@ -36,18 +36,23 @@ type SourceStatus struct {
 }
 
 type Model struct {
-	stateDir   string
-	sources    []SourceStatus
-	staged     []ingestion.SourceRecord
-	preview    []string
-	published  []string
-	persisted  []string
-	cursor     int
-	scroll     int
-	status     string
-	fbrefURL   string
-	urlInput   textinput.Model
-	editingURL bool
+	stateDir         string
+	sources          []SourceStatus
+	staged           []ingestion.SourceRecord
+	preview          []string
+	published        []string
+	persisted        []ingestion.PublishedEntity
+	cursor           int
+	publishedCursor  int
+	scroll           int
+	status           string
+	fbrefURL         string
+	urlInput         textinput.Model
+	entityInput      textinput.Model
+	editingURL       bool
+	editingPublished bool
+	publishedField   string
+	focusPublished   bool
 }
 
 type fetchFinishedMsg struct {
@@ -57,6 +62,10 @@ type fetchFinishedMsg struct {
 type publishFinishedMsg struct {
 	count int
 	err   error
+}
+
+type publishedSavedMsg struct {
+	err error
 }
 
 func New(cfg app.Config) Model {
@@ -78,9 +87,13 @@ func newModel(stateDir string) Model {
 	input.Placeholder = "https://fbref.com/..."
 	input.Width = 64
 	input.CharLimit = 512
+	entityInput := textinput.New()
+	entityInput.Width = 32
+	entityInput.CharLimit = 128
 	return Model{
-		stateDir: stateDir,
-		urlInput: input,
+		stateDir:    stateDir,
+		urlInput:    input,
+		entityInput: entityInput,
 	}
 }
 
@@ -108,6 +121,7 @@ func (m Model) loadStagedForSelection() Model {
 	if m.stateDir == "" || len(m.sources) == 0 || m.cursor >= len(m.sources) {
 		m.staged = nil
 		m.persisted = nil
+		m.publishedCursor = 0
 		return m
 	}
 	store, closeFn, err := ingestion.NewSQLiteStagingStore(m.stateDir)
@@ -128,9 +142,15 @@ func (m Model) loadStagedForSelection() Model {
 	publishedEntities, err := store.ListPublishedBySource(context.Background(), m.sources[m.cursor].Name)
 	if err != nil {
 		m.persisted = nil
+		m.publishedCursor = 0
 		return m
 	}
-	m.persisted = buildPersistedLines(publishedEntities)
+	m.persisted = publishedEntities
+	if len(m.persisted) == 0 {
+		m.publishedCursor = 0
+	} else if m.publishedCursor >= len(m.persisted) {
+		m.publishedCursor = len(m.persisted) - 1
+	}
 	return m
 }
 
@@ -199,20 +219,57 @@ func buildPublishedLines(records []ingestion.SourceRecord) []string {
 	return lines
 }
 
-func buildPersistedLines(entities []ingestion.PublishedEntity) []string {
+func buildPersistedLines(entities []ingestion.PublishedEntity, cursor int, focused bool) []string {
 	lines := make([]string, 0, min(len(entities), 5))
-	for _, entity := range entities[:min(len(entities), 5)] {
+	for i, entity := range entities[:min(len(entities), 5)] {
 		state := "valid"
 		if !entity.Validation.Valid {
 			state = "invalid"
 		}
+		prefix := "  "
+		if i == cursor {
+			if focused {
+				prefix = "> "
+			} else {
+				prefix = "* "
+			}
+		}
 		lines = append(lines, fmt.Sprintf(
-			"  %-7s id:%-3d %-18s %s",
+			"%s%-7s id:%-3d %-18s %s",
+			prefix,
 			state,
 			entity.ResolvedID,
 			truncate(entity.Name, 18),
 			truncate(entity.EntityType, 8),
 		))
+	}
+	return lines
+}
+
+func buildPersistedDetail(entity ingestion.PublishedEntity) []string {
+	lines := []string{
+		fmt.Sprintf("  id %d  resolved %d", entity.ID, entity.ResolvedID),
+		fmt.Sprintf("  source %s  type %s", entity.SourceCode, entity.EntityType),
+		fmt.Sprintf("  external %s", truncate(entity.ExternalID, 42)),
+		fmt.Sprintf("  name %s", truncate(entity.Name, 42)),
+	}
+	if len(entity.Attributes) > 0 {
+		parts := make([]string, 0, len(entity.Attributes))
+		for _, key := range []string{"position", "nationality", "name"} {
+			if value := strings.TrimSpace(entity.Attributes[key]); value != "" {
+				parts = append(parts, fmt.Sprintf("%s=%s", key, truncate(value, 16)))
+			}
+		}
+		if len(parts) > 0 {
+			lines = append(lines, "  attrs "+strings.Join(parts, "  "))
+		}
+	}
+	if entity.Validation.Valid {
+		lines = append(lines, "  validation valid")
+	} else if len(entity.Validation.Errors) > 0 {
+		lines = append(lines, "  validation "+truncate(strings.Join(entity.Validation.Errors, "; "), 52))
+	} else {
+		lines = append(lines, "  validation invalid")
 	}
 	return lines
 }
@@ -274,6 +331,15 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			next.status = fmt.Sprintf("published %d entities", msg.count)
 		}
 		return next, nil
+	case publishedSavedMsg:
+		next := m.reload()
+		if msg.err != nil {
+			next.status = msg.err.Error()
+		} else {
+			next.status = "published entity updated"
+			next.focusPublished = true
+		}
+		return next, nil
 	case tea.KeyMsg:
 		if m.editingURL {
 			switch msg.String() {
@@ -303,6 +369,53 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			}
 			var cmd tea.Cmd
 			m.urlInput, cmd = m.urlInput.Update(msg)
+			return m, cmd
+		}
+		if m.editingPublished {
+			switch msg.String() {
+			case "esc":
+				m.editingPublished = false
+				m.publishedField = ""
+				m.entityInput.Blur()
+				m.status = "published edit cancelled"
+				return m, nil
+			case "enter":
+				entity := m.selectedPublishedEntity()
+				if entity == nil {
+					m.editingPublished = false
+					m.publishedField = ""
+					m.entityInput.Blur()
+					return m, nil
+				}
+				value := strings.TrimSpace(m.entityInput.Value())
+				switch m.publishedField {
+				case "name":
+					if value == "" {
+						m.status = "published name cannot be empty"
+						return m, nil
+					}
+					entity.Name = value
+					if entity.Attributes == nil {
+						entity.Attributes = map[string]string{}
+					}
+					entity.Attributes["name"] = value
+				case "resolved_id":
+					var id int64
+					if _, err := fmt.Sscanf(value, "%d", &id); err != nil {
+						m.status = "resolved id must be numeric"
+						return m, nil
+					}
+					entity.ResolvedID = id
+				}
+				m.editingPublished = false
+				field := m.publishedField
+				m.publishedField = ""
+				m.entityInput.Blur()
+				m.status = "saving published entity…"
+				return m, runUpdatePublishedCmd(m.stateDir, *entity, field)
+			}
+			var cmd tea.Cmd
+			m.entityInput, cmd = m.entityInput.Update(msg)
 			return m, cmd
 		}
 
@@ -341,12 +454,63 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			m.urlInput.SetValue(m.fbrefURL)
 			m.status = "editing fbref URL"
 			return m, nil
+		case "tab":
+			if len(m.persisted) == 0 {
+				return m, nil
+			}
+			m.focusPublished = !m.focusPublished
+			if m.focusPublished {
+				m.status = "published entity focus"
+			} else {
+				m.status = "source list focus"
+			}
+			return m, nil
+		case "e":
+			if !m.focusPublished || len(m.persisted) == 0 {
+				return m, nil
+			}
+			entity := m.selectedPublishedEntity()
+			if entity == nil {
+				return m, nil
+			}
+			m.editingPublished = true
+			m.publishedField = "name"
+			m.entityInput.SetValue(entity.Name)
+			m.entityInput.Focus()
+			m.status = "editing published name"
+			return m, nil
+		case "i":
+			if !m.focusPublished || len(m.persisted) == 0 {
+				return m, nil
+			}
+			entity := m.selectedPublishedEntity()
+			if entity == nil {
+				return m, nil
+			}
+			m.editingPublished = true
+			m.publishedField = "resolved_id"
+			m.entityInput.SetValue(fmt.Sprintf("%d", entity.ResolvedID))
+			m.entityInput.Focus()
+			m.status = "editing resolved id"
+			return m, nil
 		case "j", "down":
+			if m.focusPublished {
+				if m.publishedCursor < len(m.persisted)-1 {
+					m.publishedCursor++
+				}
+				return m, nil
+			}
 			if m.cursor < len(m.sources)-1 {
 				m.cursor++
 				m = m.loadStagedForSelection()
 			}
 		case "k", "up":
+			if m.focusPublished {
+				if m.publishedCursor > 0 {
+					m.publishedCursor--
+				}
+				return m, nil
+			}
 			if m.cursor > 0 {
 				m.cursor--
 				m = m.loadStagedForSelection()
@@ -437,8 +601,14 @@ func (m Model) View(width, height int) string {
 		}
 		if len(m.persisted) > 0 {
 			lines = append(lines, titleStyle.Render("Published Entities"))
-			for _, line := range m.persisted {
+			for _, line := range buildPersistedLines(m.persisted, m.publishedCursor, m.focusPublished) {
 				lines = append(lines, dimStyle.Render(line))
+			}
+			if selected := m.selectedPublishedEntity(); selected != nil {
+				lines = append(lines, titleStyle.Render("Published Detail"))
+				for _, line := range buildPersistedDetail(*selected) {
+					lines = append(lines, dimStyle.Render(line))
+				}
 			}
 		}
 	}
@@ -464,8 +634,16 @@ func (m Model) View(width, height int) string {
 		lines = append(lines, valueStyle.Render(urlLine))
 	}
 
+	if m.editingPublished {
+		lines = append(lines, "",
+			labelStyle.Render("  Published Edit"),
+			valueStyle.Render("  "+m.entityInput.View()),
+			dimStyle.Render("  enter save  esc cancel"),
+		)
+	}
+
 	lines = append(lines, "",
-		dimStyle.Render("  r reload  f demo fetch  u edit fbref URL  s scrape current URL  p publish source"),
+		dimStyle.Render("  r reload  f demo fetch  u edit fbref URL  s scrape current URL  p publish source  tab published focus  e edit name  i edit resolved id"),
 	)
 
 	bodyH := height - 4
@@ -487,12 +665,22 @@ func (m Model) View(width, height int) string {
 	}
 
 	body := strings.Join(lines[start:end], "\n")
-	help := "j/k navigate  r reload  f demo  u edit URL  s scrape  p publish"
+	help := "j/k navigate  tab toggle focus  r reload  f demo  u edit URL  s scrape  p publish  e name  i id"
 	if m.editingURL {
 		help = "type/paste URL  enter save  esc cancel"
+	} else if m.editingPublished {
+		help = "type value  enter save  esc cancel"
 	}
 	helpBar := helpBarStyle.Render(help)
 	return lipgloss.JoinVertical(lipgloss.Left, body, "", helpBar)
+}
+
+func (m Model) selectedPublishedEntity() *ingestion.PublishedEntity {
+	if m.publishedCursor < 0 || m.publishedCursor >= len(m.persisted) {
+		return nil
+	}
+	entity := m.persisted[m.publishedCursor]
+	return &entity
 }
 
 func formatAge(t time.Time) string {
@@ -516,6 +704,21 @@ func runDemoFetchCmd(stateDir string) tea.Cmd {
 	return func() tea.Msg {
 		err := ingestion.RunDemoFetch(context.Background(), stateDir, time.Now())
 		return fetchFinishedMsg{err: err}
+	}
+}
+
+func runUpdatePublishedCmd(stateDir string, entity ingestion.PublishedEntity, field string) tea.Cmd {
+	return func() tea.Msg {
+		store, closeFn, err := ingestion.NewSQLiteStagingStore(stateDir)
+		if err != nil {
+			return publishedSavedMsg{err: err}
+		}
+		defer closeFn()
+		if field == "name" && entity.Validation.EntityType == "player" {
+			entity.Validation = ingestion.ValidatePlayerRecord(entity.Attributes)
+		}
+		err = store.UpdatePublished(context.Background(), entity)
+		return publishedSavedMsg{err: err}
 	}
 }
 
