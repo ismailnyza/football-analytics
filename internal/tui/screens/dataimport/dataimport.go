@@ -40,6 +40,7 @@ type Model struct {
 	sources    []SourceStatus
 	staged     []ingestion.SourceRecord
 	preview    []string
+	published  []string
 	cursor     int
 	scroll     int
 	status     string
@@ -116,6 +117,7 @@ func (m Model) loadStagedForSelection() Model {
 	}
 	m.staged = records
 	m.preview = buildPreviewLines(records)
+	m.published = buildPublishedLines(records)
 	return m
 }
 
@@ -151,6 +153,58 @@ func buildPreviewLines(records []ingestion.SourceRecord) []string {
 		}
 	}
 	return lines
+}
+
+func buildPublishedLines(records []ingestion.SourceRecord) []string {
+	known := map[string]int64{
+		"Arsenal FC":      1,
+		"Liverpool FC":    2,
+		"Manchester City": 3,
+	}
+	resolver := ingestion.NewEntityResolver(known)
+	lines := make([]string, 0, min(len(records), 5))
+	for _, record := range records[:min(len(records), 5)] {
+		norm, validation, ok := normalizeForPreview(record)
+		if !ok {
+			continue
+		}
+		match := resolver.Resolve(norm)
+		state := "valid"
+		if !validation.Valid {
+			state = "invalid"
+		} else if match.IsNew {
+			state = "new"
+		}
+		lines = append(lines, fmt.Sprintf(
+			"  %-7s id:%-3d %-18s %s",
+			state,
+			match.ResolvedID,
+			truncate(norm.Name, 18),
+			truncate(norm.EntityType, 8),
+		))
+	}
+	return lines
+}
+
+func normalizeForPreview(record ingestion.SourceRecord) (ingestion.NormalizedRecord, ingestion.ValidationResult, bool) {
+	switch record.SourceName {
+	case "fbref":
+		norm, err := ingestion.NormalizeFbrefPlayerRecord(record)
+		if err != nil {
+			return ingestion.NormalizedRecord{}, ingestion.ValidationResult{}, false
+		}
+		return norm, ingestion.ValidatePlayerRecord(norm.Attributes), true
+	default:
+		return ingestion.NormalizedRecord{
+				SourceName: record.SourceName,
+				ExternalID: record.ExternalID,
+				EntityType: record.EntityType,
+				Name:       record.ExternalID,
+				Attributes: map[string]string{"name": record.ExternalID},
+			},
+			ingestion.ValidationResult{EntityType: record.EntityType, ExternalID: record.ExternalID, Valid: true},
+			true
+	}
 }
 
 func snapshotsToStatuses(snaps []ingestion.SourceSnapshot) []SourceStatus {
@@ -325,6 +379,12 @@ func (m Model) View(width, height int) string {
 			if len(m.preview) > 0 {
 				lines = append(lines, titleStyle.Render("Normalized Preview"))
 				for _, line := range m.preview {
+					lines = append(lines, dimStyle.Render(line))
+				}
+			}
+			if len(m.published) > 0 {
+				lines = append(lines, titleStyle.Render("Publish Preview"))
+				for _, line := range m.published {
 					lines = append(lines, dimStyle.Render(line))
 				}
 			}

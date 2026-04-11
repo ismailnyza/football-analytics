@@ -138,4 +138,7 @@ func TestView_showsNormalizedPreviewForFbref(t *testing.T) {
 	if !strings.Contains(view, "Ada Demo") {
 		t.Fatal("expected normalized player name in preview")
 	}
+	if !strings.Contains(view, "Publish Preview") {
+		t.Fatal("expected publish preview section")
+	}
 }
