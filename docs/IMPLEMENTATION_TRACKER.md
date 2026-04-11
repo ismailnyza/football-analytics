@@ -31,6 +31,8 @@ This file is the single truth ledger for implementation, review, and test status
 | SEC-026 Set piece engine | TESTED | Added deterministic corner, free-kick, and penalty branches in action resolution, including set-piece goals and clearances, with event-type and trigger-path tests. |
 | SEC-027 Match persistence and stats aggregation | TESTED | Added aggregate match stats to summaries and a simulation service helper that persists match rows plus event logs through the repository contracts, with service tests for event backfilling and error propagation. |
 
+| SEC-011 Match Lab screen | TESTED | Added interactive Match Lab screen with two-pane layout (setup + results), demo squads, formation cycling, seed control, simulation trigger, event log scrolling, and 10 passing tests. Screen interface + adapter pattern added for future screens. |
+
 ## Risks and caveats
 
 - The branch is intentionally reset; previous Python implementation files were removed rather than migrated.

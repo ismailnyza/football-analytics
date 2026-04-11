@@ -21,16 +21,17 @@ const (
 
 // Model is the root Bubble Tea application shell.
 type Model struct {
-	cfg        app.Config
-	sections   []string
-	selected   int
-	focus      focusArea
-	showHelp   bool
-	width      int
-	height     int
-	quitting   bool
-	keys       keymap.Map
-	statusNote string
+	cfg          app.Config
+	sections     []string
+	selected     int
+	focus        focusArea
+	showHelp     bool
+	width        int
+	height       int
+	quitting     bool
+	keys         keymap.Map
+	statusNote   string
+	activeScreen screens.Screen
 }
 
 // NewModel creates the root TUI shell with the default navigation sections.
@@ -49,6 +50,21 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// When main content is focused and there is an active interactive screen,
+	// forward non-global key messages to it. Global keys (quit, back, help)
+	// are always handled by the shell.
+	if m.focus == focusMain && m.activeScreen != nil {
+		if kMsg, ok := msg.(tea.KeyMsg); ok {
+			if !keymap.Matches(kMsg, m.keys.Quit) &&
+				!keymap.Matches(kMsg, m.keys.Back) &&
+				!keymap.Matches(kMsg, m.keys.Help) {
+				var cmd tea.Cmd
+				m.activeScreen, cmd = m.activeScreen.Update(msg)
+				return m, cmd
+			}
+		}
+	}
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -74,12 +90,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case keymap.Matches(msg, m.keys.Down):
 			m.selected = clamp(m.selected+1, 0, len(m.sections)-1)
 			m.statusNote = "Section changed"
+			m.activeScreen = nil
 		case keymap.Matches(msg, m.keys.Up):
 			m.selected = clamp(m.selected-1, 0, len(m.sections)-1)
 			m.statusNote = "Section changed"
+			m.activeScreen = nil
 		case keymap.Matches(msg, m.keys.Select):
 			m.focus = focusMain
 			m.statusNote = "Opened " + m.activeSection()
+			m.activeScreen = screens.NewScreenFor(m.activeSection())
+			if m.activeScreen != nil {
+				return m, m.activeScreen.Init()
+			}
 		}
 	}
 	return m, nil
@@ -90,16 +112,24 @@ func (m Model) View() string {
 		return ""
 	}
 
+	w := fallbackSize(m.width, 100)
+	h := fallbackSize(m.height, 30)
+
+	mainContent := screens.ContentFor(m.activeSection())
+	if m.activeScreen != nil {
+		mainContent = m.activeScreen.View(w, h)
+	}
+
 	vm := layout.ViewModel{
 		AppName:     m.cfg.Name,
 		Version:     m.cfg.Version,
-		Width:       fallbackSize(m.width, 100),
-		Height:      fallbackSize(m.height, 30),
+		Width:       w,
+		Height:      h,
 		Sections:    m.sections,
 		Selected:    m.selected,
 		Active:      m.activeSection(),
 		FocusedNav:  m.focus == focusNav,
-		MainContent: screens.ContentFor(m.activeSection()),
+		MainContent: mainContent,
 		StatusNote:  m.statusNote,
 		HelpContent: strings.Join(m.keys.ShortHelp(), "  "),
 		ShowHelp:    m.showHelp,

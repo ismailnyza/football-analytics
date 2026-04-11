@@ -34,7 +34,7 @@ Status values:
 - [x] SEC-025 Cards and suspension system
 - [x] SEC-026 Set piece engine
 - [x] SEC-027 Match persistence and stats aggregation
-- [ ] SEC-011 Match Lab screen
+- [x] SEC-011 Match Lab screen
 - [ ] SEC-012 Match result and event log screens
 
 ---
@@ -84,7 +84,7 @@ Status values:
 
 ## Immediate next task
 
-`SEC-011 Match Lab screen`
+`SEC-012 Match result and event log screens`
 
 ---
 
