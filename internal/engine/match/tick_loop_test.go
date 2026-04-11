@@ -30,7 +30,7 @@ func TestRunTickLoopTracksTickCountAndEvents(t *testing.T) {
 			t.Fatalf("event tick = %d out of range", event.Tick)
 		}
 		switch event.Type {
-		case "build_up", "penetration", "shot", "goal", "save", "block", "turnover", "injury":
+		case "build_up", "penetration", "shot", "goal", "save", "block", "turnover", "injury", "yellow", "red":
 		default:
 			t.Fatalf("unexpected event type %q", event.Type)
 		}
@@ -135,6 +135,41 @@ func TestMaybeInjureTeamTriggersForHighFatigueCandidate(t *testing.T) {
 	}
 	if injury.Severity == "" {
 		t.Fatal("injury severity is empty")
+	}
+}
+
+func TestRunTickLoopCardsAreDeterministic(t *testing.T) {
+	home, away := samplePlans()
+
+	first := RunTickLoop(24, home, away, 180)
+	second := RunTickLoop(24, home, away, 180)
+	if !reflect.DeepEqual(first.Cards, second.Cards) {
+		t.Fatal("card summaries differ for identical inputs")
+	}
+}
+
+func TestMaybeCardTeamTriggersForHighFatigueCandidate(t *testing.T) {
+	assignments, err := SelectLineup(sampleSquad(), "4-3-3", nil)
+	if err != nil {
+		t.Fatalf("SelectLineup() error = %v", err)
+	}
+	plan := BuildTeamPlan(domain.Club{Name: "Home", ShortName: "HOM"}, assignments)
+	fatigue := initialFatigue(assignments)
+	for _, assignment := range assignments {
+		if assignment.Player.PrimaryPosition != domain.PositionGK {
+			fatigue[assignment.Player.ID] = 4.1
+		}
+	}
+
+	record, ok := maybeCardTeam(11, 16, plan, fatigue, map[int64]int{}, map[int64]CardRecord{}, map[int64]Injury{})
+	if !ok {
+		t.Fatal("expected card trigger for deterministic high-fatigue input")
+	}
+	if record.Team != "HOM" {
+		t.Fatalf("record.Team = %q, want HOM", record.Team)
+	}
+	if record.Card == "" {
+		t.Fatal("record card is empty")
 	}
 }
 

@@ -24,16 +24,22 @@ type TeamPlan struct {
 
 // State is the deterministic in-memory match state across ticks.
 type State struct {
-	Seed        int64
-	Tick        int
-	HomeGoals   int
-	AwayGoals   int
-	Possession  string
-	HomeFatigue map[int64]float64
-	AwayFatigue map[int64]float64
-	HomeInjured map[int64]Injury
-	AwayInjured map[int64]Injury
-	Events      []domain.MatchEvent
+	Seed         int64
+	Tick         int
+	HomeGoals    int
+	AwayGoals    int
+	Possession   string
+	HomeFatigue  map[int64]float64
+	AwayFatigue  map[int64]float64
+	HomeInjured  map[int64]Injury
+	AwayInjured  map[int64]Injury
+	HomeBookings map[int64]int
+	AwayBookings map[int64]int
+	HomeRedCards map[int64]CardRecord
+	AwayRedCards map[int64]CardRecord
+	Cards        []CardRecord
+	Suspensions  []Suspension
+	Events       []domain.MatchEvent
 }
 
 // Summary is the terminal output of the tick loop.
@@ -44,6 +50,8 @@ type Summary struct {
 	HomeAverageFatigue float64
 	AwayAverageFatigue float64
 	Injuries           []Injury
+	Cards              []CardRecord
+	Suspensions        []Suspension
 	Events             []domain.MatchEvent
 }
 
@@ -58,6 +66,22 @@ type Injury struct {
 	Team     string
 	Tick     int
 	Severity string
+}
+
+// CardRecord captures an in-match booking or dismissal.
+type CardRecord struct {
+	PlayerID int64
+	Team     string
+	Tick     int
+	Card     string
+}
+
+// Suspension represents an immediate next-match ban created in the match.
+type Suspension struct {
+	PlayerID int64
+	Team     string
+	Reason   string
+	Matches  int
 }
 
 // BuildTeamPlan derives deterministic team strengths from the selected lineup.
@@ -87,19 +111,25 @@ func RunTickLoop(seed int64, home, away TeamPlan, ticks int) Summary {
 	}
 
 	state := State{
-		Seed:        seed,
-		Possession:  "home",
-		HomeFatigue: initialFatigue(home.Lineup),
-		AwayFatigue: initialFatigue(away.Lineup),
-		HomeInjured: make(map[int64]Injury),
-		AwayInjured: make(map[int64]Injury),
-		Events:      make([]domain.MatchEvent, 0, ticks/6),
+		Seed:         seed,
+		Possession:   "home",
+		HomeFatigue:  initialFatigue(home.Lineup),
+		AwayFatigue:  initialFatigue(away.Lineup),
+		HomeInjured:  make(map[int64]Injury),
+		AwayInjured:  make(map[int64]Injury),
+		HomeBookings: make(map[int64]int),
+		AwayBookings: make(map[int64]int),
+		HomeRedCards: make(map[int64]CardRecord),
+		AwayRedCards: make(map[int64]CardRecord),
+		Cards:        make([]CardRecord, 0, ticks/10),
+		Suspensions:  make([]Suspension, 0, 4),
+		Events:       make([]domain.MatchEvent, 0, ticks/6),
 	}
 
 	for tick := 1; tick <= ticks; tick++ {
 		state.Tick = tick
-		effectiveHome := fatigueAdjustedPlan(home, state.HomeFatigue, len(state.HomeInjured))
-		effectiveAway := fatigueAdjustedPlan(away, state.AwayFatigue, len(state.AwayInjured))
+		effectiveHome := fatigueAdjustedPlan(home, state.HomeFatigue, len(state.HomeInjured)+len(state.HomeRedCards))
+		effectiveAway := fatigueAdjustedPlan(away, state.AwayFatigue, len(state.AwayInjured)+len(state.AwayRedCards))
 		state.Possession = possessionForTick(seed, tick, effectiveHome, effectiveAway)
 
 		attacking := effectiveHome
@@ -117,6 +147,9 @@ func RunTickLoop(seed int64, home, away TeamPlan, ticks int) Summary {
 		for _, event := range resolveInjuryEvents(seed, tick, home, away, &state) {
 			state.Events = append(state.Events, event)
 		}
+		for _, event := range resolveCardEvents(seed, tick, home, away, &state) {
+			state.Events = append(state.Events, event)
+		}
 	}
 
 	return Summary{
@@ -126,6 +159,8 @@ func RunTickLoop(seed int64, home, away TeamPlan, ticks int) Summary {
 		HomeAverageFatigue: averageFatigue(home.Lineup, state.HomeFatigue),
 		AwayAverageFatigue: averageFatigue(away.Lineup, state.AwayFatigue),
 		Injuries:           flattenInjuries(state.HomeInjured, state.AwayInjured),
+		Cards:              append([]CardRecord(nil), state.Cards...),
+		Suspensions:        append([]Suspension(nil), state.Suspensions...),
 		Events:             state.Events,
 	}
 }
@@ -408,4 +443,76 @@ func flattenInjuries(home, away map[int64]Injury) []Injury {
 		return 0
 	})
 	return total
+}
+
+func resolveCardEvents(seed int64, tick int, home, away TeamPlan, state *State) []domain.MatchEvent {
+	events := make([]domain.MatchEvent, 0, 2)
+	if record, ok := maybeCardTeam(seed, tick, home, state.HomeFatigue, state.HomeBookings, state.HomeRedCards, state.HomeInjured); ok {
+		applyCardRecord(record, state.HomeBookings, state.HomeRedCards, &state.Cards, &state.Suspensions)
+		events = append(events, cardEvent(record, state))
+	}
+	if record, ok := maybeCardTeam(seed+7, tick, away, state.AwayFatigue, state.AwayBookings, state.AwayRedCards, state.AwayInjured); ok {
+		applyCardRecord(record, state.AwayBookings, state.AwayRedCards, &state.Cards, &state.Suspensions)
+		events = append(events, cardEvent(record, state))
+	}
+	return events
+}
+
+func maybeCardTeam(seed int64, tick int, team TeamPlan, fatigue map[int64]float64, bookings map[int64]int, redCards map[int64]CardRecord, injured map[int64]Injury) (CardRecord, bool) {
+	assignment, load, ok := highestFatigueCandidate(team.Lineup, fatigue, injured)
+	if !ok {
+		return CardRecord{}, false
+	}
+	if _, sentOff := redCards[assignment.Player.ID]; sentOff {
+		return CardRecord{}, false
+	}
+	trigger := (tick + int(seed%17) + int(load*10) + assignment.Player.Attributes.Defending) % 29
+	if trigger != 0 {
+		return CardRecord{}, false
+	}
+
+	card := "yellow"
+	if bookings[assignment.Player.ID] >= 1 || load >= 4.8 {
+		card = "red"
+	}
+	return CardRecord{
+		PlayerID: assignment.Player.ID,
+		Team:     team.Club.ShortName,
+		Tick:     tick,
+		Card:     card,
+	}, true
+}
+
+func applyCardRecord(record CardRecord, bookings map[int64]int, redCards map[int64]CardRecord, cards *[]CardRecord, suspensions *[]Suspension) {
+	if record.Card == "yellow" {
+		bookings[record.PlayerID]++
+		*cards = append(*cards, record)
+		return
+	}
+	bookings[record.PlayerID] = 2
+	redCards[record.PlayerID] = record
+	*cards = append(*cards, record)
+	*suspensions = append(*suspensions, Suspension{
+		PlayerID: record.PlayerID,
+		Team:     record.Team,
+		Reason:   "red_card",
+		Matches:  1,
+	})
+}
+
+func cardEvent(record CardRecord, state *State) domain.MatchEvent {
+	return domain.MatchEvent{
+		Tick:      record.Tick,
+		Minute:    tickToMinute(record.Tick),
+		Type:      record.Card,
+		PitchZone: "defensive-third",
+		PayloadRaw: fmt.Sprintf(
+			`{"team":"%s","player_id":%d,"card":"%s","home_goals":%d,"away_goals":%d}`,
+			record.Team,
+			record.PlayerID,
+			record.Card,
+			state.HomeGoals,
+			state.AwayGoals,
+		),
+	}
 }
