@@ -33,3 +33,18 @@
 ### Workflow review
 - Improvement: the repo can now go from checked-in CSVs to a deterministic validation artifact with one command.
 - New bottleneck: the draw mechanism is underfit, causing class-distribution mismatch on holdout evaluation.
+
+## Audit 2026-04-25 — Iteration 2
+### Prompt review
+- Residual-driven work paid off immediately: targeting the draw miss uncovered a stronger candidate family than the original Davidson backtest.
+- The prompt should continue to favor targeted error reduction over generic feature growth.
+
+### Skill review
+- The new Python search script is a useful offline calibration workflow and supports the existing backtest-runner skill rather than requiring a new deprecation cycle.
+
+### Memory-style ledger review
+- The evidence matrix now distinguishes committed baseline evidence from promising but not-yet-integrated offline search evidence.
+
+### Workflow review
+- Improvement: residual analysis now has a reproducible search script and artifact path.
+- New bottleneck: the stronger draw-decay family exists only as an offline search result until it is ported into the main Go harness.

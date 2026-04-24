@@ -21,9 +21,9 @@ Status values
 - [x] SEC-008 Record the first evidence-graded factor result in `infra/EVIDENCE_MATRIX.md`
 
 ## Phase 2 — Baseline error reduction
-- [ ] SEC-009 Calibrate the draw mechanism so the baseline predicts non-zero draws out of sample
+- [ ] SEC-009 Integrate the better draw-decay baseline into the main Go backtest path
 - [ ] SEC-010 Add a naive-frequency benchmark and measure delta over that baseline
 - [ ] SEC-011 Expand the baseline across additional top-5 leagues and compare transferability
 
 ## Immediate next task
-Implement SEC-009: improve the draw model so out-of-sample draw predictions are non-zero and holdout W/D/L accuracy exceeds the current 52.89% EPL benchmark.
+Implement SEC-009: port the draw-decay candidate discovered in `iteration-002-draw-search` into the main Go baseline harness and beat the current committed 52.89% holdout benchmark.

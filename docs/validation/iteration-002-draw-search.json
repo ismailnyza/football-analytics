@@ -1,0 +1,411 @@
+{
+  "generated_at": "2026-04-24T19:14:23.241131+00:00",
+  "validation_season": "2324",
+  "holdout_season": "2425",
+  "top_validation_davidson": [
+    {
+      "family": "davidson",
+      "config": {
+        "k_factor": 28,
+        "home_advantage": 90,
+        "draw_factor": 0.4
+      },
+      "validation": {
+        "accuracy": 0.5842105263157895,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6631578947368421,
+          "D": 0.0,
+          "A": 0.3368421052631579
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5210526315789473,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6868421052631579,
+          "D": 0.0,
+          "A": 0.3131578947368421
+        }
+      }
+    },
+    {
+      "family": "davidson",
+      "config": {
+        "k_factor": 28,
+        "home_advantage": 90,
+        "draw_factor": 1.0
+      },
+      "validation": {
+        "accuracy": 0.5815789473684211,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.65,
+          "D": 0.0,
+          "A": 0.35
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5263157894736842,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6736842105263158,
+          "D": 0.0,
+          "A": 0.3263157894736842
+        }
+      }
+    },
+    {
+      "family": "davidson",
+      "config": {
+        "k_factor": 24,
+        "home_advantage": 80,
+        "draw_factor": 0.6
+      },
+      "validation": {
+        "accuracy": 0.5815789473684211,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6526315789473685,
+          "D": 0.0,
+          "A": 0.3473684210526316
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5236842105263158,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6763157894736842,
+          "D": 0.0,
+          "A": 0.3236842105263158
+        }
+      }
+    },
+    {
+      "family": "davidson",
+      "config": {
+        "k_factor": 28,
+        "home_advantage": 90,
+        "draw_factor": 0.8
+      },
+      "validation": {
+        "accuracy": 0.5815789473684211,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6526315789473685,
+          "D": 0.0,
+          "A": 0.3473684210526316
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5236842105263158,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6763157894736842,
+          "D": 0.0,
+          "A": 0.3236842105263158
+        }
+      }
+    },
+    {
+      "family": "davidson",
+      "config": {
+        "k_factor": 24,
+        "home_advantage": 80,
+        "draw_factor": 0.4
+      },
+      "validation": {
+        "accuracy": 0.5815789473684211,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6578947368421053,
+          "D": 0.0,
+          "A": 0.34210526315789475
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5184210526315789,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6842105263157895,
+          "D": 0.0,
+          "A": 0.3157894736842105
+        }
+      }
+    }
+  ],
+  "top_validation_draw_decay": [
+    {
+      "family": "draw_decay",
+      "config": {
+        "k_factor": 28,
+        "home_advantage": 70,
+        "base_draw": 0.4,
+        "draw_scale": 75
+      },
+      "validation": {
+        "accuracy": 0.5868421052631579,
+        "predicted_draw_rate": 0.039473684210526314,
+        "predicted_distribution": {
+          "H": 0.6289473684210526,
+          "D": 0.039473684210526314,
+          "A": 0.33157894736842103
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5342105263157895,
+        "predicted_draw_rate": 0.034210526315789476,
+        "predicted_distribution": {
+          "H": 0.6421052631578947,
+          "D": 0.034210526315789476,
+          "A": 0.3236842105263158
+        }
+      }
+    },
+    {
+      "family": "draw_decay",
+      "config": {
+        "k_factor": 28,
+        "home_advantage": 90,
+        "base_draw": 0.2,
+        "draw_scale": 250
+      },
+      "validation": {
+        "accuracy": 0.5868421052631579,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6789473684210526,
+          "D": 0.0,
+          "A": 0.32105263157894737
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5289473684210526,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6973684210526315,
+          "D": 0.0,
+          "A": 0.3026315789473684
+        }
+      }
+    },
+    {
+      "family": "draw_decay",
+      "config": {
+        "k_factor": 24,
+        "home_advantage": 80,
+        "base_draw": 0.25,
+        "draw_scale": 75
+      },
+      "validation": {
+        "accuracy": 0.5868421052631579,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6710526315789473,
+          "D": 0.0,
+          "A": 0.32894736842105265
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5236842105263158,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6894736842105263,
+          "D": 0.0,
+          "A": 0.3105263157894737
+        }
+      }
+    },
+    {
+      "family": "draw_decay",
+      "config": {
+        "k_factor": 24,
+        "home_advantage": 80,
+        "base_draw": 0.3,
+        "draw_scale": 75
+      },
+      "validation": {
+        "accuracy": 0.5868421052631579,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6710526315789473,
+          "D": 0.0,
+          "A": 0.32894736842105265
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5236842105263158,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6894736842105263,
+          "D": 0.0,
+          "A": 0.3105263157894737
+        }
+      }
+    },
+    {
+      "family": "draw_decay",
+      "config": {
+        "k_factor": 28,
+        "home_advantage": 90,
+        "base_draw": 0.25,
+        "draw_scale": 200
+      },
+      "validation": {
+        "accuracy": 0.5842105263157895,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6763157894736842,
+          "D": 0.0,
+          "A": 0.3236842105263158
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5289473684210526,
+        "predicted_draw_rate": 0.0,
+        "predicted_distribution": {
+          "H": 0.6973684210526315,
+          "D": 0.0,
+          "A": 0.3026315789473684
+        }
+      }
+    }
+  ],
+  "best_holdout_nonzero_draw": [
+    {
+      "family": "draw_decay",
+      "config": {
+        "k_factor": 32,
+        "home_advantage": 80,
+        "base_draw": 0.35,
+        "draw_scale": 125
+      },
+      "validation": {
+        "accuracy": 0.5736842105263158,
+        "predicted_draw_rate": 0.02368421052631579,
+        "predicted_distribution": {
+          "H": 0.65,
+          "D": 0.02368421052631579,
+          "A": 0.3263157894736842
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5473684210526316,
+        "predicted_draw_rate": 0.013157894736842105,
+        "predicted_distribution": {
+          "H": 0.6631578947368421,
+          "D": 0.013157894736842105,
+          "A": 0.3236842105263158
+        }
+      }
+    },
+    {
+      "family": "draw_decay",
+      "config": {
+        "k_factor": 32,
+        "home_advantage": 80,
+        "base_draw": 0.35,
+        "draw_scale": 150
+      },
+      "validation": {
+        "accuracy": 0.5815789473684211,
+        "predicted_draw_rate": 0.02631578947368421,
+        "predicted_distribution": {
+          "H": 0.6394736842105263,
+          "D": 0.02631578947368421,
+          "A": 0.33421052631578946
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5473684210526316,
+        "predicted_draw_rate": 0.013157894736842105,
+        "predicted_distribution": {
+          "H": 0.6631578947368421,
+          "D": 0.013157894736842105,
+          "A": 0.3236842105263158
+        }
+      }
+    },
+    {
+      "family": "draw_decay",
+      "config": {
+        "k_factor": 32,
+        "home_advantage": 80,
+        "base_draw": 0.35,
+        "draw_scale": 100
+      },
+      "validation": {
+        "accuracy": 0.5736842105263158,
+        "predicted_draw_rate": 0.018421052631578946,
+        "predicted_distribution": {
+          "H": 0.6552631578947369,
+          "D": 0.018421052631578946,
+          "A": 0.3263157894736842
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5447368421052632,
+        "predicted_draw_rate": 0.013157894736842105,
+        "predicted_distribution": {
+          "H": 0.6657894736842105,
+          "D": 0.013157894736842105,
+          "A": 0.32105263157894737
+        }
+      }
+    },
+    {
+      "family": "draw_decay",
+      "config": {
+        "k_factor": 32,
+        "home_advantage": 80,
+        "base_draw": 0.35,
+        "draw_scale": 75
+      },
+      "validation": {
+        "accuracy": 0.5710526315789474,
+        "predicted_draw_rate": 0.013157894736842105,
+        "predicted_distribution": {
+          "H": 0.6605263157894737,
+          "D": 0.013157894736842105,
+          "A": 0.3263157894736842
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5421052631578948,
+        "predicted_draw_rate": 0.015789473684210527,
+        "predicted_distribution": {
+          "H": 0.6657894736842105,
+          "D": 0.015789473684210527,
+          "A": 0.31842105263157894
+        }
+      }
+    },
+    {
+      "family": "draw_decay",
+      "config": {
+        "k_factor": 32,
+        "home_advantage": 80,
+        "base_draw": 0.35,
+        "draw_scale": 200
+      },
+      "validation": {
+        "accuracy": 0.5789473684210527,
+        "predicted_draw_rate": 0.02368421052631579,
+        "predicted_distribution": {
+          "H": 0.6368421052631579,
+          "D": 0.02368421052631579,
+          "A": 0.3394736842105263
+        }
+      },
+      "holdout": {
+        "accuracy": 0.5421052631578948,
+        "predicted_draw_rate": 0.013157894736842105,
+        "predicted_distribution": {
+          "H": 0.6605263157894737,
+          "D": 0.013157894736842105,
+          "A": 0.3263157894736842
+        }
+      }
+    }
+  ]
+}

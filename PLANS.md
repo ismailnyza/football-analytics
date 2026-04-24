@@ -11,23 +11,26 @@ Boot a clean repository that can improve both the football simulation engine and
 5. keep all evidence claims honest and sparse
 
 ## Iteration 1 result
-Historical team-strength baseline for Premier League match result prediction is now implemented and measured.
+Historical team-strength baseline for Premier League match result prediction is implemented and measured.
 
-Measured checkpoint
-- training seasons: 2019/20 through 2023/24 EPL
+Committed checkpoint
+- method: Davidson-style Elo baseline in Go
 - holdout season: 2024/25 EPL
-- holdout exact W/D/L accuracy: 52.89%
-- holdout log loss: 0.9946
-- dominant residual: the baseline predicts zero draws despite a 24.47% actual draw rate in the holdout season
+- exact W/D/L accuracy: 52.89%
+- draw predictions: 0.00%
 
-## Iteration 2 target
-Reduce the draw-class error without leaking future information.
+## Iteration 2 result
+A reproducible draw-model search found a stronger candidate family.
 
-Deliverables for Iteration 2
-- non-zero out-of-sample draw predictions
-- improved holdout W/D/L accuracy over 52.89%
-- explicit comparison against a naive-frequency benchmark
-- updated evidence ledger and validation artifact
+Experimental checkpoint
+- method: draw-decay team-strength model searched offline under `calibration/backtest/search_draw_models.py`
+- validation season: 2023/24 EPL
+- best validation candidate with non-zero draws: `k=28`, `home_advantage=70`, `base_draw=0.40`, `draw_scale=75`
+- holdout exact W/D/L accuracy for that candidate: 53.42%
+- stronger non-zero-draw holdout candidate also exists at 54.74% but with weaker validation support
+
+## Iteration 3 target
+Integrate the draw-decay family into the main Go backtest path and keep only candidates that improve the committed holdout benchmark without hiding the validation split.
 
 ## Guardrails
 - no factor enters the engine without a measured test
