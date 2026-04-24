@@ -14,3 +14,9 @@ Bootstrap interpretation for this repository
 - create a minimal executable and testable baseline
 - choose one measurable gap at a time
 - avoid filling the repo with unsupported pseudo-results
+
+Iteration 3 interpretation
+- draw-decay baseline integrated at 53.42% holdout W/D/L accuracy
+- naive-frequency floor at 40.79% (sanity-check baseline)
+- player-level domain models defined as foundation for atomic match modelling
+- next targets: cross-league validation, draw prediction improvement, player-level data ingestion
