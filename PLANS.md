@@ -43,7 +43,7 @@ Committed checkpoint
 - player-level domain models defined in engine/domain/
 
 ## Iteration 4 target
-Expand the baseline across additional top-5 leagues and begin player-level data ingestion.
+Cross-league validation: run the baseline on La Liga, Serie A, Bundesliga, and Ligue 1. Integrate team-form features and start match-event timeline reconstruction.
 
 ## Guardrails
 - no factor enters the engine without a measured test

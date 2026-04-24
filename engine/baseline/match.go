@@ -22,6 +22,7 @@ type Config struct {
 	DrawFactor    float64 `json:"draw_factor,omitempty"`
 	BaseDraw      float64 `json:"base_draw,omitempty"`
 	DrawScale     float64 `json:"draw_scale,omitempty"`
+	DrawCut       float64 `json:"draw_cut,omitempty"`
 	Scale         float64 `json:"scale"`
 }
 

@@ -22,14 +22,17 @@ Status values
 
 ## Phase 2 — Baseline error reduction
 - [x] SEC-009 Integrate the better draw-decay baseline into the main Go backtest path
+- [x] SEC-009b Add ordered probit model family to the grid
 - [x] SEC-010 Add a naive-frequency benchmark and measure delta over that baseline
-- [ ] SEC-011 Expand the baseline across additional top-5 leagues and compare transferability
+- [x] SEC-011 Build cross-league validation framework (generic CSV loader, cross-league CLI, download script)
 
 ## Phase 3 — Player-level modelling foundation
 - [x] SEC-012 Define player-level domain models (Player, Team, Lineup, MatchEvent, Goal, Shot, Card, Substitution, Assist)
-- [ ] SEC-013 Add player-level data ingestion contracts
-- [ ] SEC-014 Build team-form feature extraction from result history
-- [ ] SEC-015 Add feature registry and feature flag infrastructure
+- [x] SEC-013 Add player-level data ingestion contracts (PlayerMatchStats, CSV loader, test fixtures)
+- [x] SEC-014 Build team-form feature extraction from result history
+- [x] SEC-015 Add feature registry and feature flag infrastructure
+- [ ] SEC-016 Integrate team-form features into match prediction pipeline
+- [ ] SEC-017 Build match-event timeline reconstructor from result data
 
 ## Immediate next task
-Implement SEC-011: expand the baseline across additional top-5 leagues (La Liga, Serie A, Bundesliga, Ligue 1) and compare transferability.
+Download additional league data with `python3 calibration/data/download_leagues.py`, then run `go run ./cmd/simcli cross-league` to benchmark transferability.

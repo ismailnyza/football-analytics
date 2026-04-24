@@ -13,6 +13,21 @@ import (
 
 const dateLayout = "02/01/2006"
 
+var competitionName = map[string]string{
+	"E0":  "EPL",
+	"SP1": "LaLiga",
+	"D1":  "Bundesliga",
+	"I1":  "SerieA",
+	"F1":  "Ligue1",
+}
+
+func CompetitionFromCode(code string) string {
+	if name, ok := competitionName[code]; ok {
+		return name
+	}
+	return code
+}
+
 func LoadMatchesFromGlob(pattern string) ([]Match, []string, error) {
 	paths, err := filepath.Glob(pattern)
 	if err != nil {
@@ -84,6 +99,7 @@ func loadCSV(path string) ([]Match, error) {
 	}
 
 	season := seasonFromFilename(path)
+	competition := competitionFromPath(path)
 	matches := make([]Match, 0, len(records)-1)
 	for _, row := range records[1:] {
 		date, err := time.Parse(dateLayout, row[headers["Date"]])
@@ -100,7 +116,7 @@ func loadCSV(path string) ([]Match, error) {
 		}
 		result := strings.TrimSpace(row[headers["FTR"]])
 		matches = append(matches, Match{
-			Competition: "EPL",
+			Competition: competition,
 			Season:      season,
 			Date:        date,
 			HomeTeam:    strings.TrimSpace(row[headers["HomeTeam"]]),
@@ -112,6 +128,15 @@ func loadCSV(path string) ([]Match, error) {
 		})
 	}
 	return matches, nil
+}
+
+func competitionFromPath(path string) string {
+	base := filepath.Base(path)
+	parts := strings.SplitN(base, "_", 2)
+	if len(parts) > 0 {
+		return CompetitionFromCode(parts[0])
+	}
+	return "Unknown"
 }
 
 func seasonFromFilename(path string) string {

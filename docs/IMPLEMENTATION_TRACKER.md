@@ -25,10 +25,15 @@
 | SEC-008 First evidence-graded factor result | TESTED | Ran the holdout backtest, wrote `docs/validation/iteration-001-baseline-backtest.json`, and recorded the measured result in `infra/EVIDENCE_MATRIX.md`. |
 | SEC-009 Draw-model search + Go integration | TESTED | The draw-decay baseline (k=28, HA=70, base_draw=0.40, draw_scale=75) is integrated into the main Go backtest path via DefaultGrid(). Holdout accuracy: 53.42% with 3.42% predicted draws. |
 | SEC-010 Naive-frequency benchmark | TESTED | Added `engine/baseline/naive.go` with `NewNaiveFrequency` and `EvaluateNaiveFrequency`, plus `simcli naive-frequency` command. Floor accuracy: 40.79% (always predict Home). Delta over naive: +12.63%. |
-| SEC-012 Player-level domain models | TESTED | Added `engine/domain/` package with Player, Team, Lineup, MatchEvent, Goal, Shot, Card, Substitution, and Assist types. 6 tests pass. |
+| SEC-009b Ordered probit model | TESTED | Added `ModelFamilyOrderedProbit` with symmetric cut-point model. Produces 38-63% draw probability for even teams. Grid search still selects draw_decay on validation accuracy. |
+| SEC-011 Cross-league framework | TESTED | Generic CSV loader auto-detects competition from filename. `simcli cross-league` command runs per-league backtests. Download script at `calibration/data/download_leagues.py`. |
+| SEC-012 Player-level domain models | TESTED | Added `engine/domain/` package with Player, Team, Lineup, MatchEvent, Goal, Shot, Card, Substitution, and Assist types. 8 tests pass. |
+| SEC-013 Player data ingestion | TESTED | Added `PlayerMatchStats` type, `LoadPlayerStatsFromGlob`, CSV parser, test fixtures in `engine/domain/testdata/`. |
+| SEC-014 Team-form extraction | TESTED | Added `engine/baseline/form.go` with `ExtractTeamForm` and `CalculateFormDelta`. 4 form tests pass. |
+| SEC-015 Feature registry | TESTED | Added `engine/feature/` package with `Registry`, `Feature` interface, `BaseFeature`. Grade-gated registration. 4 tests pass. |
 
 ## Risks and caveats
-- Holdout accuracy improved from 52.89% (Davidson) to 53.42% (draw-decay) with non-zero draw predictions, but still below the offline best of 54.74%.
-- The draw-decay model still under-predicts draws (3.42% vs actual 24.47%).
-- Cross-league validation still does not exist.
-- Player-level models are defined but have no data ingestion, feature extraction, or engine integration yet.
+- Draw-decay still under-predicts draws (3.42% vs actual 24.47%). Ordered probit is coded but not selected by validation.
+- Cross-league framework exists but only EPL data is checked in. Need to download other leagues.
+- Player-level domain models and loader exist but no real player data is checked in yet.
+- Team-form features exist but not yet integrated into the prediction pipeline.

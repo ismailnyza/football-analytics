@@ -127,3 +127,29 @@ func TestPlayerFormDefaults(t *testing.T) {
 		t.Fatalf("form rating should default to 0")
 	}
 }
+
+func TestLoadPlayerStatsFromGlob(t *testing.T) {
+	stats, used, err := LoadPlayerStatsFromGlob("testdata/player_stats_*.csv")
+	if err != nil {
+		t.Fatalf("LoadPlayerStatsFromGlob error: %v", err)
+	}
+	if len(used) != 1 {
+		t.Fatalf("used files = %d, want 1", len(used))
+	}
+	if len(stats) != 6 {
+		t.Fatalf("stats count = %d, want 6", len(stats))
+	}
+	if stats[0].PlayerID != "p1" {
+		t.Fatalf("first player = %s, want p1", stats[0].PlayerID)
+	}
+	if stats[0].Goals != 1 || stats[0].Minutes != 90 {
+		t.Fatalf("first player stats wrong: goals=%d minutes=%d", stats[0].Goals, stats[0].Minutes)
+	}
+}
+
+func TestLoadPlayerStatsNoMatch(t *testing.T) {
+	_, _, err := LoadPlayerStatsFromGlob("testdata/nonexistent_*.csv")
+	if err == nil {
+		t.Fatalf("expected error for no match")
+	}
+}

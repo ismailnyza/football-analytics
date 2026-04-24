@@ -23,6 +23,11 @@ func main() {
 			fmt.Fprintf(os.Stderr, "baseline-backtest failed: %v\n", err)
 			os.Exit(1)
 		}
+	case "cross-league":
+		if err := runCrossLeague(); err != nil {
+			fmt.Fprintf(os.Stderr, "cross-league failed: %v\n", err)
+			os.Exit(1)
+		}
 	case "naive-frequency":
 		if err := runNaiveFrequency(); err != nil {
 			fmt.Fprintf(os.Stderr, "naive-frequency failed: %v\n", err)
@@ -69,14 +74,44 @@ func runBaselineBacktest() error {
 	fmt.Printf("validation accuracy: %.4f\n", report.Validation.Accuracy)
 	fmt.Printf("holdout accuracy: %.4f\n", report.Holdout.Accuracy)
 	fmt.Printf("holdout predicted draw rate: %.4f\n", report.Holdout.PredictedDraw)
-	fmt.Printf("model=%s K=%.0f home_adv=%.0f draw_factor=%.2f base_draw=%.2f draw_scale=%.0f\n",
+	fmt.Printf("model=%s K=%.0f home_adv=%.0f draw_factor=%.2f base_draw=%.2f draw_scale=%.0f draw_cut=%.2f\n",
 		report.ChosenConfig.ModelFamily,
 		report.ChosenConfig.KFactor,
 		report.ChosenConfig.HomeAdvantage,
 		report.ChosenConfig.DrawFactor,
 		report.ChosenConfig.BaseDraw,
 		report.ChosenConfig.DrawScale,
+		report.ChosenConfig.DrawCut,
 	)
+	return nil
+}
+
+func runCrossLeague() error {
+	type leagueEntry struct {
+		Code    string
+		Pattern string
+	}
+	leagues := []leagueEntry{
+		{Code: "EPL", Pattern: "E0"},
+	}
+	for i := range leagues {
+		l := &leagues[i]
+		fmt.Printf("--- %s (%s) ---\n", l.Code, l.Pattern)
+		matches, sourceFiles, err := baseline.LoadMatchesFromGlob(filepath.Join("data", "raw", "football-data", l.Pattern+"_*.csv"))
+		if err != nil {
+			fmt.Printf("  SKIP: %v\n", err)
+			continue
+		}
+		report, err := baseline.RunBacktest(matches, "2324", "2425", baseline.DefaultGrid(), sourceFiles)
+		if err != nil {
+			fmt.Printf("  ERROR: %v\n", err)
+			continue
+		}
+		fmt.Printf("  validation accuracy: %.4f\n", report.Validation.Accuracy)
+		fmt.Printf("  holdout accuracy:    %.4f\n", report.Holdout.Accuracy)
+		fmt.Printf("  holdout draw rate:   %.4f\n", report.Holdout.PredictedDraw)
+		fmt.Printf("  model: %s K=%.0f HA=%.0f\n", report.ChosenConfig.ModelFamily, report.ChosenConfig.KFactor, report.ChosenConfig.HomeAdvantage)
+	}
 	return nil
 }
 

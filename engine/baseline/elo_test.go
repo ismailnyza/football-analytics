@@ -10,6 +10,7 @@ func TestPredictProbabilitiesSumToOne(t *testing.T) {
 	configs := []Config{
 		{ModelFamily: ModelFamilyDavidson, InitialRating: 1500, KFactor: 20, HomeAdvantage: 60, DrawFactor: 0.9, Scale: 400},
 		{ModelFamily: ModelFamilyDrawDecay, InitialRating: 1500, KFactor: 20, HomeAdvantage: 70, BaseDraw: 0.4, DrawScale: 75, Scale: 400},
+		{ModelFamily: ModelFamilyOrderedProbit, InitialRating: 1500, KFactor: 20, HomeAdvantage: 70, DrawCut: 0.5, Scale: 400},
 	}
 	for _, cfg := range configs {
 		probs := predict(1500, 1500, cfg)

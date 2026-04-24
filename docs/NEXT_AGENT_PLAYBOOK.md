@@ -6,45 +6,50 @@ make fmt && make test
 go run ./cmd/simcli status
 go run ./cmd/simcli baseline-backtest
 go run ./cmd/simcli naive-frequency
+go run ./cmd/simcli cross-league
+python3 calibration/data/download_leagues.py        # download other leagues
+python3 calibration/backtest/search_draw_models.py  # offline draw search
 ```
 
-## Current state (Iteration 3 complete)
-- Draw-decay baseline integrated: 53.42% holdout W/D/L accuracy on 2024/25 EPL
+## Current state (Iteration 4 complete)
+- Draw-decay baseline integrated: 53.42% holdout W/D/L accuracy
 - Naive-frequency floor: 40.79%
-- Delta over naive: +12.63%
-- Player-level domain models defined in `engine/domain/`
-- 15 tests passing across 3 packages
+- Ordered probit model coded (38-63% draw rate) but not selected by grid validation
+- Cross-league framework: generic CSV loader, competition auto-detection
+- Player domain models: Player, Team, Lineup, MatchEvent, Goal, Shot, Card, Sub, Assist
+- Player data loader: PlayerMatchStats CSV parser with test fixtures
+- Team-form extraction: rolling form from result history
+- Feature registry: grade-gated, Feature interface, BaseFeature
+- 27 tests passing across 4 packages
 
 ## Highest-priority next actions
 
-### 1. Cross-league validation (SEC-011)
-- Download La Liga, Serie A, Bundesliga, Ligue 1 data from football-data.co.uk
-- Place in `data/raw/football-data/` with naming convention `E0_*.csv` → `SP1_*.csv`, `I1_*.csv`, `D1_*.csv`, `F1_*.csv`
-- Run baseline backtest per league
-- Record per-league metrics in evidence matrix
-- Compare transferability: does a model tuned on EPL transfer to other leagues?
+### 1. Download other league data
+```bash
+python3 calibration/data/download_leagues.py
+go run ./cmd/simcli cross-league
+```
+This will benchmark 5 leagues and produce per-league accuracy metrics.
 
-### 2. Improve draw prediction rate
-- Current draw prediction: 3.42% vs actual 24.47%
-- Search wider parameter space or add draw-bias term
-- Consider ordered-probit / ordinal regression for three-outcome prediction
+### 2. Integrate team-form features into prediction (SEC-016)
+- Add form-weighted rating adjustment to the Elo model
+- Measure delta on holdout accuracy
+- Record evidence in matrix
 
-### 3. Player-level data ingestion (SEC-013)
-- Source options: understat.com (xG), fbref.com (player stats), Opta via football-data
-- Define data contract for player-level stats
-- Create loader in `engine/domain/loader.go`
-- Create test fixtures in `engine/domain/testdata/`
+### 3. Build match-event timeline reconstructor (SEC-017)
+- Use existing team stats (shots, corners, cards from CSVs) to create event timelines
+- Map to MatchEvent types in engine/domain/event.go
+- This bridges the gap between team-level data and atomic match modelling
 
-### 4. Team-form feature extraction (SEC-014)
-- Extract rolling team form from existing result history
-- Add form-weighted team strength to baseline model
-- Measure accuracy delta
+### 4. Source real player-level data
+- understat.com for xG/shots per player
+- fbref.com for comprehensive player stats
+- Load via the existing PlayerMatchStats CSV parser
 
-### 5. Feature registry (SEC-015)
-- Create `engine/feature/` package
-- Define `Feature` interface: Name, Compute(match) float64
-- Feature flag system for toggle-able factors
-- Integrate with evidence grading
+### 5. Build player contribution model
+- Use PlayerMatchStats to estimate player strength
+- Build team strength from player-level data
+- Compare accuracy to Elo-only baseline
 
 ## Rules reminder
 - No factor enters the engine without a measured backtest
@@ -54,14 +59,15 @@ go run ./cmd/simcli naive-frequency
 - Update TASKS.md, PLANS.md, IMPLEMENTATION_TRACKER.md honestly
 - Commit only passing work
 
-## File locations reference
+## File locations
 ```
-engine/domain/     — Player, Team, Lineup, MatchEvent types
-engine/baseline/   — Elo model, backtest harness, naive-frequency
+engine/baseline/   — Elo models, backtest, naive-frequency, team form
+engine/domain/     — Player, Team, Lineup, MatchEvent, PlayerMatchStats, loader
+engine/feature/    — Feature registry, BaseFeature
 engine/evidence/   — Grade system (A-F), FactorRecord
-cmd/simcli/        — CLI entrypoint
-calibration/       — Python offline scripts
+cmd/simcli/        — CLI: status, baseline-backtest, naive-frequency, cross-league
+calibration/       — Python: draw search, league download
 infra/             — Evidence matrix, factor graph, self-audit, prompt changelog
-data/raw/          — Checked-in CSVs
+data/raw/          — Checked-in CSVs (EPL only)
 docs/validation/   — Backtest artifact JSON files
 ```

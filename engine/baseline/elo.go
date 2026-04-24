@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	ModelFamilyDavidson  = "davidson"
-	ModelFamilyDrawDecay = "draw_decay"
+	ModelFamilyDavidson      = "davidson"
+	ModelFamilyDrawDecay     = "draw_decay"
+	ModelFamilyOrderedProbit = "ordered_probit"
 )
 
 func DefaultGrid() []Config {
@@ -32,8 +33,8 @@ func DefaultGrid() []Config {
 					Scale:         scale,
 				})
 			}
-			for _, baseDraw := range []float64{0.20, 0.25, 0.30, 0.35, 0.40} {
-				for _, drawScale := range []float64{50, 75, 100, 125, 150} {
+			for _, baseDraw := range []float64{0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50} {
+				for _, drawScale := range []float64{30, 50, 75, 100, 125, 150, 200} {
 					configs = append(configs, Config{
 						ModelFamily:   ModelFamilyDrawDecay,
 						InitialRating: initial,
@@ -44,6 +45,16 @@ func DefaultGrid() []Config {
 						Scale:         scale,
 					})
 				}
+			}
+			for _, drawCut := range []float64{0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0} {
+				configs = append(configs, Config{
+					ModelFamily:   ModelFamilyOrderedProbit,
+					InitialRating: initial,
+					KFactor:       k,
+					HomeAdvantage: ha,
+					DrawCut:       drawCut,
+					Scale:         scale,
+				})
 			}
 		}
 	}
@@ -249,6 +260,8 @@ func predict(homeRating, awayRating float64, cfg Config) Probabilities {
 	switch cfg.ModelFamily {
 	case ModelFamilyDrawDecay:
 		return predictDrawDecay(homeRating, awayRating, cfg)
+	case ModelFamilyOrderedProbit:
+		return predictOrderedProbit(homeRating, awayRating, cfg)
 	case ModelFamilyDavidson, "":
 		fallthrough
 	default:
@@ -274,6 +287,32 @@ func predictDrawDecay(homeRating, awayRating float64, cfg Config) Probabilities 
 		HomeWin: (1.0 - pDraw) * pHomeNoDraw,
 		AwayWin: (1.0 - pDraw) * (1.0 - pHomeNoDraw),
 	}
+}
+
+func predictOrderedProbit(homeRating, awayRating float64, cfg Config) Probabilities {
+	diff := (homeRating + cfg.HomeAdvantage - awayRating) / cfg.Scale
+	c := cfg.DrawCut
+	pAway := normCDF(-c - diff)
+	pHome := 1.0 - normCDF(c-diff)
+	pDraw := 1.0 - pHome - pAway
+	if pDraw < 0 {
+		pDraw = 0
+		pHome = normCDF(diff - c)
+		pAway = 1.0 - pHome
+	}
+	pHome = clamp(pHome, 0.01, 0.99)
+	pAway = clamp(pAway, 0.01, 0.99)
+	pDraw = clamp(pDraw, 0.01, 0.99)
+	sum := pHome + pDraw + pAway
+	return Probabilities{
+		HomeWin: pHome / sum,
+		Draw:    pDraw / sum,
+		AwayWin: pAway / sum,
+	}
+}
+
+func normCDF(x float64) float64 {
+	return 0.5 * math.Erfc(-x/math.Sqrt2)
 }
 
 func argmax(probs Probabilities) string {

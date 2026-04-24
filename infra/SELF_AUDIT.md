@@ -69,3 +69,24 @@
 - Improvement: the repo went from zero-draw baseline to non-zero-draw with a measured floor benchmark, plus player-level domain model foundation — all within iteration 3.
 - New bottleneck: draw under-prediction remains severe (3.42% vs actual 24.47%).
 - Next bottleneck: no cross-league validation, no player-level data ingestion.
+
+## Audit 2026-04-25 — Iteration 4 (autonomous improvement cycle)
+### Prompt review
+- Ordered probit model added to the prediction family. Grid search still selects draw_decay on validation accuracy — honest, evidence-driven outcome.
+- Cross-league validation framework is built: generic CSV loader, competition auto-detection, `simcli cross-league` command, download script.
+- Player-level data ingestion contracts exist: `PlayerMatchStats` type, CSV loader, test fixtures.
+- Team-form extraction from existing match results is implemented.
+- Feature registry with grade-gated registration is live.
+- The repo now has 27 passing tests across 4 Go packages.
+
+### Skill review
+- Existing skills remain useful. Backtest-runner now covers cross-league workflow.
+
+### Memory-style ledger review
+- Evidence matrix, disproven cemetery, factor graph — all current.
+- Draw under-prediction is the dominant known error source.
+
+### Workflow review
+- Major infrastructure built: player domains, form extraction, feature registry, cross-league.
+- Current bottleneck: no real player-level data for other leagues checked in.
+- Next bottleneck: team-form features not yet integrated into the prediction pipeline.
