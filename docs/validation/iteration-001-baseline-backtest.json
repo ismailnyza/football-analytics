@@ -1,0 +1,53 @@
+{
+  "competition": "EPL",
+  "training_seasons": [
+    "1920",
+    "2021",
+    "2122",
+    "2223",
+    "2324"
+  ],
+  "holdout_season": "2425",
+  "chosen_config": {
+    "initial_rating": 1500,
+    "k_factor": 24,
+    "home_advantage": 70,
+    "draw_factor": 0.6,
+    "scale": 400
+  },
+  "training": {
+    "matches": 1900,
+    "correct": 1019,
+    "accuracy": 0.5363157894736842,
+    "log_loss": 0.9854978955442281,
+    "brier_score": 0.5864038533013644,
+    "actual_home_win_rate": 0.44105263157894736,
+    "actual_draw_rate": 0.22736842105263158,
+    "actual_away_win_rate": 0.33157894736842103,
+    "predicted_home_win_rate": 0.7021052631578948,
+    "predicted_draw_rate": 0,
+    "predicted_away_win_rate": 0.29789473684210527
+  },
+  "holdout": {
+    "matches": 380,
+    "correct": 201,
+    "accuracy": 0.5289473684210526,
+    "log_loss": 0.9945615120612448,
+    "brier_score": 0.5951322958046849,
+    "actual_home_win_rate": 0.40789473684210525,
+    "actual_draw_rate": 0.24473684210526317,
+    "actual_away_win_rate": 0.3473684210526316,
+    "predicted_home_win_rate": 0.6605263157894737,
+    "predicted_draw_rate": 0,
+    "predicted_away_win_rate": 0.3394736842105263
+  },
+  "generated_at": "2026-04-24T19:01:21.004690324Z",
+  "source_files": [
+    "data/raw/football-data/E0_1920.csv",
+    "data/raw/football-data/E0_2021.csv",
+    "data/raw/football-data/E0_2122.csv",
+    "data/raw/football-data/E0_2223.csv",
+    "data/raw/football-data/E0_2324.csv",
+    "data/raw/football-data/E0_2425.csv"
+  ]
+}

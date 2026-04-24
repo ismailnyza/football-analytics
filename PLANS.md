@@ -10,15 +10,24 @@ Boot a clean repository that can improve both the football simulation engine and
 4. document the first research target
 5. keep all evidence claims honest and sparse
 
-## Iteration 1 target
-Historical team-strength baseline for match result prediction.
+## Iteration 1 result
+Historical team-strength baseline for Premier League match result prediction is now implemented and measured.
 
-Deliverables for Iteration 1
-- dataset contract and provenance note
-- first backtest runner
-- baseline predictor
-- first evidence entry with real metrics
-- first prompt/skill self-audit checkpoint
+Measured checkpoint
+- training seasons: 2019/20 through 2023/24 EPL
+- holdout season: 2024/25 EPL
+- holdout exact W/D/L accuracy: 52.89%
+- holdout log loss: 0.9946
+- dominant residual: the baseline predicts zero draws despite a 24.47% actual draw rate in the holdout season
+
+## Iteration 2 target
+Reduce the draw-class error without leaking future information.
+
+Deliverables for Iteration 2
+- non-zero out-of-sample draw predictions
+- improved holdout W/D/L accuracy over 52.89%
+- explicit comparison against a naive-frequency benchmark
+- updated evidence ledger and validation artifact
 
 ## Guardrails
 - no factor enters the engine without a measured test
