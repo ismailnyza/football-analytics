@@ -1,68 +1,30 @@
-# Football Simulation Engine
+# Self-Improving Football Simulation Research Agent
 
-Local-first terminal football simulation engine.
+This repository is the fresh bootstrap for a football simulation research system and the agent infrastructure that improves it.
 
-## Current state
+Mission
+- build a football simulation engine from empirical evidence
+- keep the runtime deterministic and local-first
+- improve the agent infrastructure itself: prompts, skills, memory hygiene, and workflow
 
-This branch has been reset to a clean bootstrap aligned with the Go-first architecture.
+Current state
+- iteration 0 bootstrap complete
+- repository scaffolded for engine, calibration, evidence tracking, and self-audit
+- first executable artifact is a tiny `simcli` status command plus evidence primitives
+- first research target is a historical team-strength baseline for match result prediction
 
-Implemented so far:
-- repository scaffolding for the target module layout
-- minimal Go module and runnable entrypoints
-- project tracker and task queue reset to the current truth
+Core directories
+- `engine/` — Go packages for evidence tracking and simulation code
+- `calibration/` — offline experimentation, backtests, and factor testing
+- `docs/` — theory, factors, validation, and research notes
+- `infra/` — prompt/skill/memory audit ledgers
+- `data/` — checked-in datasets and provenance notes
+- `video/` — video verification notes and future tooling
+- `.skills/` — repo-local workflows for future agents
 
-Not implemented yet:
-- SQLite schema and migrations
-- domain models
-- repository layer
-- Bubble Tea TUI shell
-- match and season simulation logic
-
-## Repository guide
-
-- `SKILL.md`: primary project rules
-- `TASKS.md`: ordered implementation queue
-- `ARCHITECTURE.md`: technical boundaries
-- `AGENTS.md`: working agreement
-- `docs/IMPLEMENTATION_TRACKER.md`: implementation ledger
-- `.skills/`: task-specific workflows
-
-## Build
-
+Quick start
 ```bash
-make build
 make test
-make run-cli
-make run-tui
+make build
+go run ./cmd/simcli status
 ```
-
-## Layout
-
-```text
-cmd/
-  simtui/
-  simcli/
-
-internal/
-  app/
-  domain/
-  engine/
-  storage/
-  tui/
-  services/
-  ingestion/
-  export/
-  mlbridge/
-
-python/
-  calibration/
-  models/
-  pipelines/
-  notebooks/
-
-data/
-  seeds/
-  configs/
-  models/
-```
-

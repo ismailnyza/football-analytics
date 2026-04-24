@@ -7,20 +7,24 @@ Read these files first:
 4. `docs/IMPLEMENTATION_TRACKER.md`
 5. relevant `.skills/*/SKILL.md`
 
-## Working style
+Working style
 - make focused changes
-- keep build green
+- keep the repository buildable
 - run relevant tests after every change
-- if tests fail, fix them before moving on
-- update `TASKS.md` and `docs/IMPLEMENTATION_TRACKER.md` honestly
-- respect Go/Python boundary
-- respect TUI-first design
+- update `TASKS.md`, `PLANS.md`, and `docs/IMPLEMENTATION_TRACKER.md` honestly
+- keep the Go runtime deterministic
+- keep Python offline-only for calibration and research
+- prefer explicit evidence tracking over undocumented intuition
 - commit only passing work
 - push passing commits when remote access is available
-- reuse already-approved command permissions when the same capability is needed again
 
-## Required output after work
+Current mission
+- bootstrap a self-improving football simulation research repository from scratch
+- build the agent infrastructure that can revise prompts, skills, and evidence ledgers
+- start with a minimal executable baseline and a truthful research backlog
+- prioritize a historical-team-strength baseline before richer match-engine factors
 
+Required output after work
 ```text
 Handoff Summary
 - Sections touched:
@@ -31,9 +35,8 @@ Handoff Summary
 - Risks / caveats:
 ```
 
-## Do not
-- silently change architecture
-- silently change simulation semantics
+Do not
+- fabricate evidence grades or validation results
 - claim tests that were not run
-- add Python runtime dependency into the TUI loop
-- commit failing work as complete
+- add Python into the interactive runtime loop
+- silently skip tracker updates
