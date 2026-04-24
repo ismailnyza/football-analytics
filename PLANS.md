@@ -42,8 +42,20 @@ Committed checkpoint
 - model: k=28, home_advantage=70, base_draw=0.40, draw_scale=75
 - player-level domain models defined in engine/domain/
 
-## Iteration 4 target
-Cross-league validation: run the baseline on La Liga, Serie A, Bundesliga, and Ligue 1. Integrate team-form features and start match-event timeline reconstruction.
+## Iteration 4 result
+Match prediction pipeline is built end-to-end. `simcli predict <Home> <Away>` outputs:
+- Result probabilities and predicted outcome
+- Expected scoreline with xG
+- Top 5 likely scorers per team
+- Top 5 likely assisters per team
+- Reconstructed match event timeline (goals with minutes, cards, half-time)
+- Team event stats (shots, corners, fouls, cards)
+- Team form snapshots
+
+34 tests passing across 5 packages.
+
+## Iteration 5 target
+Measure prediction accuracy against real 2024/25 results and iteratively reduce error.
 
 ## Guardrails
 - no factor enters the engine without a measured test

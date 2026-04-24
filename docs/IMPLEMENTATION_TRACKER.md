@@ -31,9 +31,11 @@
 | SEC-013 Player data ingestion | TESTED | Added `PlayerMatchStats` type, `LoadPlayerStatsFromGlob`, CSV parser, test fixtures in `engine/domain/testdata/`. |
 | SEC-014 Team-form extraction | TESTED | Added `engine/baseline/form.go` with `ExtractTeamForm` and `CalculateFormDelta`. 4 form tests pass. |
 | SEC-015 Feature registry | TESTED | Added `engine/feature/` package with `Registry`, `Feature` interface, `BaseFeature`. Grade-gated registration. 4 tests pass. |
+| SEC-016 Match prediction pipeline | TESTED | Added `engine/predict/` package with `Pipeline`, `PlayerPool`, scorer/assist prediction, team event estimation, match timeline reconstruction. `simcli predict` command. 7 tests pass. |
+| SEC-017 Match event reconstructor | TESTED | `ReconstructMatch` generates full event timeline: goals with scorer names and minute, assists, cards. Half-time score. Deterministic. |
 
 ## Risks and caveats
 - Draw-decay still under-predicts draws (3.42% vs actual 24.47%). Ordered probit is coded but not selected by validation.
 - Cross-league framework exists but only EPL data is checked in. Need to download other leagues.
-- Player-level domain models and loader exist but no real player data is checked in yet.
-- Team-form features exist but not yet integrated into the prediction pipeline.
+- Player pool is synthetic (generated from team ratings). Real player data needed for accurate scorer/assist predictions.
+- Match event timeline is plausible but generated, not from real data.

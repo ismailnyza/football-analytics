@@ -31,8 +31,8 @@ Status values
 - [x] SEC-013 Add player-level data ingestion contracts (PlayerMatchStats, CSV loader, test fixtures)
 - [x] SEC-014 Build team-form feature extraction from result history
 - [x] SEC-015 Add feature registry and feature flag infrastructure
-- [ ] SEC-016 Integrate team-form features into match prediction pipeline
-- [ ] SEC-017 Build match-event timeline reconstructor from result data
+- [x] SEC-016 Build match prediction pipeline (result, scoreline, scorers, assists, events, form)
+- [x] SEC-017 Build match-event timeline reconstructor from team stats
 
 ## Immediate next task
-Download additional league data with `python3 calibration/data/download_leagues.py`, then run `go run ./cmd/simcli cross-league` to benchmark transferability.
+Improve prediction accuracy. Run `go run ./cmd/simcli predict "Arsenal" "Liverpool"` to see current output, then benchmark against real 2024/25 results.

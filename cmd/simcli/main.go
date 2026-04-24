@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/ismailnyza/football-analytics/engine/baseline"
 	"github.com/ismailnyza/football-analytics/engine/evidence"
+	"github.com/ismailnyza/football-analytics/engine/predict"
 )
 
 func main() {
@@ -31,6 +33,15 @@ func main() {
 	case "naive-frequency":
 		if err := runNaiveFrequency(); err != nil {
 			fmt.Fprintf(os.Stderr, "naive-frequency failed: %v\n", err)
+			os.Exit(1)
+		}
+	case "predict":
+		if len(os.Args) < 4 {
+			fmt.Fprintf(os.Stderr, "usage: simcli predict <HomeTeam> <AwayTeam>\n")
+			os.Exit(1)
+		}
+		if err := runPredict(os.Args[2], os.Args[3]); err != nil {
+			fmt.Fprintf(os.Stderr, "predict failed: %v\n", err)
 			os.Exit(1)
 		}
 	default:
@@ -112,6 +123,36 @@ func runCrossLeague() error {
 		fmt.Printf("  holdout draw rate:   %.4f\n", report.Holdout.PredictedDraw)
 		fmt.Printf("  model: %s K=%.0f HA=%.0f\n", report.ChosenConfig.ModelFamily, report.ChosenConfig.KFactor, report.ChosenConfig.HomeAdvantage)
 	}
+	return nil
+}
+
+func runPredict(homeTeam, awayTeam string) error {
+	matches, _, err := baseline.LoadMatchesFromGlob(filepath.Join("data", "raw", "football-data", "E0_*.csv"))
+	if err != nil {
+		return err
+	}
+	pretrain, validation, _ := baseline.SplitBySeason(matches, "2324", "2425")
+	_, _, _, ratings, err := baseline.Tune(pretrain, validation, baseline.DefaultGrid())
+	if err != nil {
+		return err
+	}
+	form := baseline.ExtractTeamForm(append(pretrain, validation...), 5)
+	cfg := baseline.Config{
+		ModelFamily:   baseline.ModelFamilyDrawDecay,
+		InitialRating: 1500,
+		KFactor:       28,
+		HomeAdvantage: 70,
+		BaseDraw:      0.40,
+		DrawScale:     75,
+		Scale:         400,
+	}
+	pipeline := predict.NewPipeline(ratings, form, cfg)
+	pred, err := pipeline.Predict(homeTeam, awayTeam)
+	if err != nil {
+		return err
+	}
+	data, _ := json.MarshalIndent(pred, "", "  ")
+	fmt.Println(string(data))
 	return nil
 }
 
