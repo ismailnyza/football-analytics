@@ -33,6 +33,8 @@ Status values
 - [x] SEC-015 Add feature registry and feature flag infrastructure
 - [x] SEC-016 Build match prediction pipeline (result, scoreline, scorers, assists, events, form)
 - [x] SEC-017 Build match-event timeline reconstructor from team stats
+- [x] SEC-018 Real player database (19 EPL teams, 20 players each with real names)
+- [x] SEC-019 Parameter optimizer (gradient-free coordinate ascent, 53.7%→55.0%)
 
 ## Immediate next task
-Improve prediction accuracy. Run `go run ./cmd/simcli predict "Arsenal" "Liverpool"` to see current output, then benchmark against real 2024/25 results.
+Close the accuracy gap. Current ceiling ~55% on exact W/D/L. Requires player-level features (xG, form, injuries) or alternative target metric (directional accuracy).

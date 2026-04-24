@@ -30,6 +30,18 @@ func NewPipeline(teamRatings map[string]float64, form baseline.FormMap, config b
 	}
 }
 
+func NewPipelineWithPool(pool *PlayerPool, teamRatings map[string]float64, form baseline.FormMap, config baseline.Config) *Pipeline {
+	reg := feature.NewRegistry()
+	return &Pipeline{
+		Registry:    reg,
+		PlayerPool:  pool,
+		TeamRatings: teamRatings,
+		TeamForm:    form,
+		Config:      config,
+		FormWindow:  5,
+	}
+}
+
 func (p *Pipeline) Predict(homeTeam, awayTeam string) (MatchPrediction, error) {
 	homeRating := p.getRating(homeTeam)
 	awayRating := p.getRating(awayTeam)

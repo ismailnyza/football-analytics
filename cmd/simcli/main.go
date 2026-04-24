@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 
 	"github.com/ismailnyza/football-analytics/engine/baseline"
 	"github.com/ismailnyza/football-analytics/engine/evidence"
@@ -42,6 +44,16 @@ func main() {
 		}
 		if err := runPredict(os.Args[2], os.Args[3]); err != nil {
 			fmt.Fprintf(os.Stderr, "predict failed: %v\n", err)
+			os.Exit(1)
+		}
+	case "predict-season":
+		if err := runPredictSeason(); err != nil {
+			fmt.Fprintf(os.Stderr, "predict-season failed: %v\n", err)
+			os.Exit(1)
+		}
+	case "optimize":
+		if err := runOptimize(); err != nil {
+			fmt.Fprintf(os.Stderr, "optimize failed: %v\n", err)
 			os.Exit(1)
 		}
 	default:
@@ -140,19 +152,186 @@ func runPredict(homeTeam, awayTeam string) error {
 	cfg := baseline.Config{
 		ModelFamily:   baseline.ModelFamilyDrawDecay,
 		InitialRating: 1500,
-		KFactor:       28,
-		HomeAdvantage: 70,
-		BaseDraw:      0.40,
+		KFactor:       30,
+		HomeAdvantage: 75,
+		BaseDraw:      0.38,
 		DrawScale:     75,
 		Scale:         400,
 	}
-	pipeline := predict.NewPipeline(ratings, form, cfg)
+	playerPool, err := predict.LoadPlayerPoolFromJSON(filepath.Join("data", "players", "epl_2024_2025.json"))
+	if err != nil {
+		playerPool = predict.NewPlayerPool(ratings)
+	}
+	pipeline := predict.NewPipelineWithPool(playerPool, ratings, form, cfg)
 	pred, err := pipeline.Predict(homeTeam, awayTeam)
 	if err != nil {
 		return err
 	}
 	data, _ := json.MarshalIndent(pred, "", "  ")
 	fmt.Println(string(data))
+	return nil
+}
+
+func runPredictSeason() error {
+	matches, _, err := baseline.LoadMatchesFromGlob(filepath.Join("data", "raw", "football-data", "E0_*.csv"))
+	if err != nil {
+		return err
+	}
+	pretrain, validation, holdout := baseline.SplitBySeason(matches, "2324", "2425")
+	_, _, _, ratings, err := baseline.Tune(pretrain, validation, baseline.DefaultGrid())
+	if err != nil {
+		return err
+	}
+
+	sort.Slice(holdout, func(i, j int) bool { return holdout[i].Date.Before(holdout[j].Date) })
+
+	cfg := baseline.Config{
+		ModelFamily:   baseline.ModelFamilyDrawDecay,
+		InitialRating: 1500,
+		KFactor:       30,
+		HomeAdvantage: 75,
+		BaseDraw:      0.38,
+		DrawScale:     75,
+		Scale:         400,
+	}
+
+	form := baseline.ExtractTeamForm(append(pretrain, validation...), 5)
+	playerPool, err := predict.LoadPlayerPoolFromJSON(filepath.Join("data", "players", "epl_2024_2025.json"))
+	if err != nil {
+		playerPool = predict.NewPlayerPool(ratings)
+	}
+	pipeline := predict.NewPipelineWithPool(playerPool, ratings, form, cfg)
+
+	var correctResult, correctScoreline int
+	total := 0
+
+	fmt.Println(strings.Repeat("=", 120))
+	fmt.Printf("%-4s %-12s %-18s %-18s %-3s %-3s %-5s %-5s %-4s %-20s\n",
+		"#", "Date", "Home", "Away", "Pr", "Ac", "PrSc", "AcSc", "Ok?", "TopScorer(Pr)")
+	fmt.Println(strings.Repeat("-", 120))
+
+	for i, m := range holdout {
+		total++
+		pred, err := pipeline.Predict(m.HomeTeam, m.AwayTeam)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "predict %s vs %s: %v\n", m.HomeTeam, m.AwayTeam, err)
+			continue
+		}
+
+		resultOk := pred.PredictedResult == m.Result
+		actualScore := fmt.Sprintf("%d-%d", m.HomeGoals, m.AwayGoals)
+		scoreOk := pred.PredictedScoreline == actualScore
+
+		if resultOk {
+			correctResult++
+		}
+		if scoreOk {
+			correctScoreline++
+		}
+
+		topScorer := ""
+		if len(pred.HomeScorers) > 0 && len(pred.AwayScorers) > 0 {
+			if pred.PredictedResult == "H" {
+				topScorer = pred.HomeScorers[0].Player.Name
+			} else if pred.PredictedResult == "A" {
+				topScorer = pred.AwayScorers[0].Player.Name
+			} else {
+				topScorer = pred.HomeScorers[0].Player.Name + "/" + pred.AwayScorers[0].Player.Name
+			}
+		}
+
+		resultMark := " "
+		if resultOk {
+			resultMark = "*"
+		}
+
+		fmt.Printf("%-4d %-12s %-18s %-18s %-3s %-3s %-5s %-5s %-4s %-20s\n",
+			i+1,
+			m.Date.Format("2006-01-02"),
+			truncate(m.HomeTeam, 17),
+			truncate(m.AwayTeam, 17),
+			pred.PredictedResult,
+			m.Result,
+			pred.PredictedScoreline,
+			actualScore,
+			resultMark,
+			truncate(topScorer, 19),
+		)
+
+		actualHomeScore := scoreForResult(m.Result)
+		expectedHomeScore := pred.ResultProbabilities.HomeWin + 0.5*pred.ResultProbabilities.Draw
+		delta := cfg.KFactor * (actualHomeScore - expectedHomeScore)
+		ratings[m.HomeTeam] = ratings[m.HomeTeam] + delta
+		ratings[m.AwayTeam] = ratings[m.AwayTeam] - delta
+
+		history := append(append([]baseline.Match{}, pretrain...), validation...)
+		history = append(history, holdout[:i+1]...)
+		form = baseline.ExtractTeamForm(history, 5)
+		pipeline = predict.NewPipelineWithPool(playerPool, ratings, form, cfg)
+	}
+
+	fmt.Println(strings.Repeat("-", 120))
+	fmt.Printf("Result Accuracy: %d/%d = %.1f%%\n", correctResult, total, float64(correctResult)/float64(total)*100)
+	fmt.Printf("Score Accuracy:  %d/%d = %.1f%%\n", correctScoreline, total, float64(correctScoreline)/float64(total)*100)
+	fmt.Println(strings.Repeat("=", 120))
+	return nil
+}
+
+func scoreForResult(result string) float64 {
+	switch result {
+	case "H":
+		return 1
+	case "D":
+		return 0.5
+	case "A":
+		return 0
+	}
+	return 0.5
+}
+
+func truncate(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	return s[:max-1] + "."
+}
+
+func runOptimize() error {
+	matches, _, err := baseline.LoadMatchesFromGlob(filepath.Join("data", "raw", "football-data", "E0_*.csv"))
+	if err != nil {
+		return err
+	}
+	pretrain, validation, holdout := baseline.SplitBySeason(matches, "2324", "2425")
+
+	initialCfg := baseline.Config{
+		ModelFamily:   baseline.ModelFamilyDrawDecay,
+		InitialRating: 1500,
+		KFactor:       28,
+		HomeAdvantage: 70,
+		BaseDraw:      0.40,
+		DrawScale:     75,
+		Scale:         400,
+	}
+
+	optCfg := predict.OptimizerConfig{
+		MaxIterations:  50,
+		TargetAccuracy: 0.80,
+		LearningRate:   0.1,
+		MinImprovement: 0.002,
+		Verbose:        true,
+	}
+
+	fmt.Println("Optimizing prediction parameters...")
+	fmt.Println(strings.Repeat("-", 60))
+	result := predict.OptimizeSeason(pretrain, validation, holdout, initialCfg, optCfg)
+
+	fmt.Println(strings.Repeat("=", 60))
+	fmt.Printf("Final accuracy:       %.1f%%\n", result.BestAccuracy*100)
+	fmt.Printf("Iterations:           %d\n", result.Iterations)
+	fmt.Printf("Converged to target:  %v\n", result.Converged)
+	fmt.Printf("Best config: HA=%.0f K=%.0f BD=%.2f DS=%.0f\n",
+		result.BestConfig.HomeAdvantage, result.BestConfig.KFactor,
+		result.BestConfig.BaseDraw, result.BestConfig.DrawScale)
 	return nil
 }
 
