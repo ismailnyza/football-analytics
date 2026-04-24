@@ -29,8 +29,21 @@ Experimental checkpoint
 - holdout exact W/D/L accuracy for that candidate: 53.42%
 - stronger non-zero-draw holdout candidate also exists at 54.74% but with weaker validation support
 
-## Iteration 3 target
-Integrate the draw-decay family into the main Go backtest path and keep only candidates that improve the committed holdout benchmark without hiding the validation split.
+## Iteration 3 result
+The draw-decay baseline is integrated into the main Go backtest path. The naive-frequency floor benchmark is implemented and measured.
+
+Committed checkpoint
+- method: draw-decay Elo baseline in Go
+- holdout season: 2024/25 EPL
+- holdout W/D/L accuracy: 53.42% (up from 52.89%)
+- holdout predicted draw rate: 3.42% (up from 0.00%)
+- naive-frequency floor: 40.79% (always predict Home)
+- delta over naive floor: +12.63%
+- model: k=28, home_advantage=70, base_draw=0.40, draw_scale=75
+- player-level domain models defined in engine/domain/
+
+## Iteration 4 target
+Expand the baseline across additional top-5 leagues and begin player-level data ingestion.
 
 ## Guardrails
 - no factor enters the engine without a measured test

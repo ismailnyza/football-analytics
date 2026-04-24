@@ -23,6 +23,11 @@ func main() {
 			fmt.Fprintf(os.Stderr, "baseline-backtest failed: %v\n", err)
 			os.Exit(1)
 		}
+	case "naive-frequency":
+		if err := runNaiveFrequency(); err != nil {
+			fmt.Fprintf(os.Stderr, "naive-frequency failed: %v\n", err)
+			os.Exit(1)
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command: %s\n", command)
 		os.Exit(1)
@@ -31,15 +36,15 @@ func main() {
 
 func printStatus() {
 	factor := evidence.FactorRecord{
-		Name:       "historical team strength baseline",
-		Hypothesis: "stronger teams should improve outcome prediction over naive priors",
-		Grade:      evidence.GradeD,
-		TestMethod: "planned backtest",
+		Name:       "historical team strength baseline (draw-decay)",
+		Hypothesis: "stronger teams with explicit draw decay improve match-outcome prediction over naive priors",
+		Grade:      evidence.GradeB,
+		TestMethod: "deterministic chronological Go backtest on 2019/20–2024/25 EPL with 2024/25 holdout",
 	}
 
 	fmt.Println("self-improving football simulation research repo")
-	fmt.Println("status: bootstrap complete, empirical baseline pending")
-	fmt.Printf("next factor: %s (%s)\n", factor.Name, factor.Grade)
+	fmt.Println("status: iteration 3 — draw-decay baseline integrated; holdout accuracy 53.42%")
+	fmt.Printf("committed factor: %s (%s)\n", factor.Name, factor.Grade)
 }
 
 func runBaselineBacktest() error {
@@ -47,18 +52,49 @@ func runBaselineBacktest() error {
 	if err != nil {
 		return err
 	}
-	report, err := baseline.RunBacktest(matches, "2425", baseline.DefaultGrid(), sourceFiles)
+	report, err := baseline.RunBacktest(matches, "2324", "2425", baseline.DefaultGrid(), sourceFiles)
 	if err != nil {
 		return err
 	}
-	outPath := filepath.Join("docs", "validation", "iteration-001-baseline-backtest.json")
-	if err := baseline.WriteReport(outPath, report); err != nil {
+	reportPath := filepath.Join("docs", "validation", "iteration-003-baseline-backtest.json")
+	predictionsPath := filepath.Join("docs", "validation", "iteration-003-holdout-predictions.jsonl")
+	if err := baseline.WriteReport(reportPath, report); err != nil {
 		return err
 	}
-	fmt.Printf("wrote %s\n", outPath)
+	if err := baseline.WritePredictionsJSONL(predictionsPath, report.HoldoutMatches); err != nil {
+		return err
+	}
+	fmt.Printf("wrote %s\n", reportPath)
+	fmt.Printf("wrote %s\n", predictionsPath)
+	fmt.Printf("validation accuracy: %.4f\n", report.Validation.Accuracy)
 	fmt.Printf("holdout accuracy: %.4f\n", report.Holdout.Accuracy)
-	fmt.Printf("holdout log loss: %.4f\n", report.Holdout.LogLoss)
-	fmt.Printf("holdout brier: %.4f\n", report.Holdout.BrierScore)
-	fmt.Printf("config: K=%.0f home_adv=%.0f draw=%.2f scale=%.0f\n", report.ChosenConfig.KFactor, report.ChosenConfig.HomeAdvantage, report.ChosenConfig.DrawFactor, report.ChosenConfig.Scale)
+	fmt.Printf("holdout predicted draw rate: %.4f\n", report.Holdout.PredictedDraw)
+	fmt.Printf("model=%s K=%.0f home_adv=%.0f draw_factor=%.2f base_draw=%.2f draw_scale=%.0f\n",
+		report.ChosenConfig.ModelFamily,
+		report.ChosenConfig.KFactor,
+		report.ChosenConfig.HomeAdvantage,
+		report.ChosenConfig.DrawFactor,
+		report.ChosenConfig.BaseDraw,
+		report.ChosenConfig.DrawScale,
+	)
+	return nil
+}
+
+func runNaiveFrequency() error {
+	matches, sourceFiles, err := baseline.LoadMatchesFromGlob(filepath.Join("data", "raw", "football-data", "E0_*.csv"))
+	if err != nil {
+		return err
+	}
+	pretrain, _, holdout := baseline.SplitBySeason(matches, "2324", "2425")
+	model := baseline.NewNaiveFrequency(pretrain)
+	metrics := baseline.EvaluateNaiveFrequency(holdout, model)
+	fmt.Printf("naive-frequency benchmark\n")
+	fmt.Printf("pretrain outcome distribution: H=%.2f%% D=%.2f%% A=%.2f%%\n",
+		model.HomeRate*100, model.DrawRate*100, model.AwayRate*100)
+	fmt.Printf("always predicts: %s\n", model.Prediction)
+	fmt.Printf("holdout accuracy: %.4f\n", metrics.Accuracy)
+	fmt.Printf("holdout log loss: %.4f\n", metrics.LogLoss)
+	fmt.Printf("holdout Brier: %.4f\n", metrics.BrierScore)
+	fmt.Printf("source files: %v\n", sourceFiles)
 	return nil
 }

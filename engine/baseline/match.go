@@ -15,10 +15,13 @@ type Match struct {
 }
 
 type Config struct {
+	ModelFamily   string  `json:"model_family"`
 	InitialRating float64 `json:"initial_rating"`
 	KFactor       float64 `json:"k_factor"`
 	HomeAdvantage float64 `json:"home_advantage"`
-	DrawFactor    float64 `json:"draw_factor"`
+	DrawFactor    float64 `json:"draw_factor,omitempty"`
+	BaseDraw      float64 `json:"base_draw,omitempty"`
+	DrawScale     float64 `json:"draw_scale,omitempty"`
 	Scale         float64 `json:"scale"`
 }
 
@@ -42,21 +45,31 @@ type Metrics struct {
 	PredictedAwayWin float64 `json:"predicted_away_win_rate"`
 }
 
-type RunResult struct {
-	Config        Config  `json:"config"`
-	Metrics       Metrics `json:"metrics"`
-	StartSeason   string  `json:"start_season"`
-	EndSeason     string  `json:"end_season"`
-	HoldoutSeason string  `json:"holdout_season,omitempty"`
+type MatchPrediction struct {
+	Date             time.Time     `json:"date"`
+	Season           string        `json:"season"`
+	HomeTeam         string        `json:"home_team"`
+	AwayTeam         string        `json:"away_team"`
+	ActualHomeGoals  int           `json:"actual_home_goals"`
+	ActualAwayGoals  int           `json:"actual_away_goals"`
+	ActualResult     string        `json:"actual_result"`
+	PredictedResult  string        `json:"predicted_result"`
+	Probabilities    Probabilities `json:"probabilities"`
+	HomeRatingBefore float64       `json:"home_rating_before"`
+	AwayRatingBefore float64       `json:"away_rating_before"`
+	SourceFile       string        `json:"source_file"`
 }
 
 type BacktestReport struct {
-	Competition     string    `json:"competition"`
-	TrainingSeasons []string  `json:"training_seasons"`
-	HoldoutSeason   string    `json:"holdout_season"`
-	ChosenConfig    Config    `json:"chosen_config"`
-	Training        Metrics   `json:"training"`
-	Holdout         Metrics   `json:"holdout"`
-	GeneratedAt     time.Time `json:"generated_at"`
-	SourceFiles     []string  `json:"source_files"`
+	Competition      string            `json:"competition"`
+	PretrainSeasons  []string          `json:"pretrain_seasons"`
+	ValidationSeason string            `json:"validation_season"`
+	HoldoutSeason    string            `json:"holdout_season"`
+	ChosenConfig     Config            `json:"chosen_config"`
+	Pretrain         Metrics           `json:"pretrain"`
+	Validation       Metrics           `json:"validation"`
+	Holdout          Metrics           `json:"holdout"`
+	HoldoutMatches   []MatchPrediction `json:"holdout_matches"`
+	GeneratedAt      time.Time         `json:"generated_at"`
+	SourceFiles      []string          `json:"source_files"`
 }

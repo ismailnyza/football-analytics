@@ -48,3 +48,24 @@
 ### Workflow review
 - Improvement: residual analysis now has a reproducible search script and artifact path.
 - New bottleneck: the stronger draw-decay family exists only as an offline search result until it is ported into the main Go harness.
+
+## Audit 2026-04-25 — Iteration 3
+### Prompt review
+- The draw-decay baseline is now integrated into the main Go backtest path (SEC-009 TESTED).
+- A naive-frequency floor benchmark is implemented (SEC-010 TESTED), giving a measurable sanity-check baseline at 40.79%.
+- Player-level domain models exist as a foundation (SEC-012 TESTED), marking the transition from pure team-level to atomic match modelling.
+- The prompt should continue favoring evidence-driven expansion rather than speculative features.
+
+### Skill review
+- Existing skills remain useful; no deprecations needed.
+- The backtest-runner skill now covers both baseline-backtest and naive-frequency commands.
+
+### Memory-style ledger review
+- Evidence matrix updated to reflect the integrated draw-decay baseline at Grade B.
+- Disproven cemetery now records the Davidson fixed-draw factor failure.
+- Factor graph shows active nodes and planned expansion.
+
+### Workflow review
+- Improvement: the repo went from zero-draw baseline to non-zero-draw with a measured floor benchmark, plus player-level domain model foundation — all within iteration 3.
+- New bottleneck: draw under-prediction remains severe (3.42% vs actual 24.47%).
+- Next bottleneck: no cross-league validation, no player-level data ingestion.

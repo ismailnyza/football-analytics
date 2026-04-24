@@ -9,17 +9,22 @@ import (
 	"time"
 )
 
+const (
+	ModelFamilyDavidson  = "davidson"
+	ModelFamilyDrawDecay = "draw_decay"
+)
+
 func DefaultGrid() []Config {
 	initial := 1500.0
 	scale := 400.0
-	kValues := []float64{12, 16, 20, 24, 28, 32}
-	homeAdvValues := []float64{40, 50, 60, 70, 80, 90}
-	drawValues := []float64{0.60, 0.75, 0.90, 1.05, 1.20}
-	configs := make([]Config, 0, len(kValues)*len(homeAdvValues)*len(drawValues))
+	kValues := []float64{16, 20, 24, 28, 32}
+	homeAdvValues := []float64{50, 60, 70, 80, 90}
+	var configs []Config
 	for _, k := range kValues {
 		for _, ha := range homeAdvValues {
-			for _, draw := range drawValues {
+			for _, draw := range []float64{0.4, 0.6, 0.8, 1.0, 1.2} {
 				configs = append(configs, Config{
+					ModelFamily:   ModelFamilyDavidson,
 					InitialRating: initial,
 					KFactor:       k,
 					HomeAdvantage: ha,
@@ -27,40 +32,65 @@ func DefaultGrid() []Config {
 					Scale:         scale,
 				})
 			}
+			for _, baseDraw := range []float64{0.20, 0.25, 0.30, 0.35, 0.40} {
+				for _, drawScale := range []float64{50, 75, 100, 125, 150} {
+					configs = append(configs, Config{
+						ModelFamily:   ModelFamilyDrawDecay,
+						InitialRating: initial,
+						KFactor:       k,
+						HomeAdvantage: ha,
+						BaseDraw:      baseDraw,
+						DrawScale:     drawScale,
+						Scale:         scale,
+					})
+				}
+			}
 		}
 	}
 	return configs
 }
 
-func SplitBySeason(matches []Match, holdoutSeason string) (training []Match, holdout []Match) {
+func SplitBySeason(matches []Match, validationSeason, holdoutSeason string) (pretrain, validation, holdout []Match) {
 	for _, match := range matches {
-		if match.Season == holdoutSeason {
+		switch match.Season {
+		case holdoutSeason:
 			holdout = append(holdout, match)
-		} else {
-			training = append(training, match)
+		case validationSeason:
+			validation = append(validation, match)
+		default:
+			pretrain = append(pretrain, match)
 		}
 	}
-	return training, holdout
+	return pretrain, validation, holdout
 }
 
-func Tune(training []Match, grid []Config) (Config, Metrics, error) {
-	if len(training) == 0 {
-		return Config{}, Metrics{}, fmt.Errorf("training matches required")
+func Tune(pretrain, validation []Match, grid []Config) (Config, Metrics, Metrics, map[string]float64, error) {
+	if len(pretrain) == 0 {
+		return Config{}, Metrics{}, Metrics{}, nil, fmt.Errorf("pretrain matches required")
+	}
+	if len(validation) == 0 {
+		return Config{}, Metrics{}, Metrics{}, nil, fmt.Errorf("validation matches required")
 	}
 	if len(grid) == 0 {
-		return Config{}, Metrics{}, fmt.Errorf("config grid required")
+		return Config{}, Metrics{}, Metrics{}, nil, fmt.Errorf("config grid required")
 	}
 
 	best := grid[0]
-	bestMetrics, _ := RunMatches(training, best, nil)
+	bestPretrain, ratings, _ := RunMatchesDetailed(pretrain, best, nil, false)
+	bestValidation, bestPostValidationRatings, _ := RunMatchesDetailed(validation, best, ratings, false)
+	bestRatings := cloneRatings(bestPostValidationRatings)
+
 	for _, cfg := range grid[1:] {
-		metrics, _ := RunMatches(training, cfg, nil)
-		if better(metrics, bestMetrics) {
+		pretrainMetrics, cfgRatings, _ := RunMatchesDetailed(pretrain, cfg, nil, false)
+		validationMetrics, cfgPostValidationRatings, _ := RunMatchesDetailed(validation, cfg, cfgRatings, false)
+		if better(validationMetrics, bestValidation) {
 			best = cfg
-			bestMetrics = metrics
+			bestPretrain = pretrainMetrics
+			bestValidation = validationMetrics
+			bestRatings = cloneRatings(cfgPostValidationRatings)
 		}
 	}
-	return best, bestMetrics, nil
+	return best, bestPretrain, bestValidation, bestRatings, nil
 }
 
 func better(candidate, incumbent Metrics) bool {
@@ -74,10 +104,13 @@ func better(candidate, incumbent Metrics) bool {
 }
 
 func RunMatches(matches []Match, cfg Config, initialRatings map[string]float64) (Metrics, map[string]float64) {
-	ratings := make(map[string]float64)
-	for k, v := range initialRatings {
-		ratings[k] = v
-	}
+	metrics, ratings, _ := RunMatchesDetailed(matches, cfg, initialRatings, false)
+	return metrics, ratings
+}
+
+func RunMatchesDetailed(matches []Match, cfg Config, initialRatings map[string]float64, includePredictions bool) (Metrics, map[string]float64, []MatchPrediction) {
+	ratings := cloneRatings(initialRatings)
+	predictions := make([]MatchPrediction, 0, len(matches))
 
 	var correct int
 	var logLoss float64
@@ -119,6 +152,23 @@ func RunMatches(matches []Match, cfg Config, initialRatings map[string]float64) 
 			predictedAway++
 		}
 
+		if includePredictions {
+			predictions = append(predictions, MatchPrediction{
+				Date:             match.Date,
+				Season:           match.Season,
+				HomeTeam:         match.HomeTeam,
+				AwayTeam:         match.AwayTeam,
+				ActualHomeGoals:  match.HomeGoals,
+				ActualAwayGoals:  match.AwayGoals,
+				ActualResult:     match.Result,
+				PredictedResult:  prediction,
+				Probabilities:    probs,
+				HomeRatingBefore: homeRating,
+				AwayRatingBefore: awayRating,
+				SourceFile:       match.SourceFile,
+			})
+		}
+
 		expectedHomeScore := probs.HomeWin + 0.5*probs.Draw
 		actualHomeScore := scoreForResult(match.Result)
 		delta := cfg.KFactor * (actualHomeScore - expectedHomeScore)
@@ -139,31 +189,33 @@ func RunMatches(matches []Match, cfg Config, initialRatings map[string]float64) 
 		metrics.PredictedDraw = predictedDraw / total
 		metrics.PredictedAwayWin = predictedAway / total
 	}
-	return metrics, ratings
+	return metrics, ratings, predictions
 }
 
-func RunBacktest(matches []Match, holdoutSeason string, grid []Config, sourceFiles []string) (BacktestReport, error) {
-	training, holdout := SplitBySeason(matches, holdoutSeason)
-	if len(training) == 0 || len(holdout) == 0 {
-		return BacktestReport{}, fmt.Errorf("need both training and holdout matches; got %d training and %d holdout", len(training), len(holdout))
+func RunBacktest(matches []Match, validationSeason, holdoutSeason string, grid []Config, sourceFiles []string) (BacktestReport, error) {
+	pretrain, validation, holdout := SplitBySeason(matches, validationSeason, holdoutSeason)
+	if len(pretrain) == 0 || len(validation) == 0 || len(holdout) == 0 {
+		return BacktestReport{}, fmt.Errorf("need pretrain, validation, and holdout matches; got %d, %d, %d", len(pretrain), len(validation), len(holdout))
 	}
-	cfg, trainingMetrics, err := Tune(training, grid)
+	cfg, pretrainMetrics, validationMetrics, ratings, err := Tune(pretrain, validation, grid)
 	if err != nil {
 		return BacktestReport{}, err
 	}
-	_, ratings := RunMatches(training, cfg, nil)
-	holdoutMetrics, _ := RunMatches(holdout, cfg, ratings)
-	trainingSeasons := uniqueSeasons(training)
-	sort.Strings(trainingSeasons)
+	holdoutMetrics, _, holdoutPredictions := RunMatchesDetailed(holdout, cfg, ratings, true)
+	pretrainSeasons := uniqueSeasons(pretrain)
+	sort.Strings(pretrainSeasons)
 	return BacktestReport{
-		Competition:     "EPL",
-		TrainingSeasons: trainingSeasons,
-		HoldoutSeason:   holdoutSeason,
-		ChosenConfig:    cfg,
-		Training:        trainingMetrics,
-		Holdout:         holdoutMetrics,
-		GeneratedAt:     time.Now().UTC(),
-		SourceFiles:     sourceFiles,
+		Competition:      "EPL",
+		PretrainSeasons:  pretrainSeasons,
+		ValidationSeason: validationSeason,
+		HoldoutSeason:    holdoutSeason,
+		ChosenConfig:     cfg,
+		Pretrain:         pretrainMetrics,
+		Validation:       validationMetrics,
+		Holdout:          holdoutMetrics,
+		HoldoutMatches:   holdoutPredictions,
+		GeneratedAt:      time.Now().UTC(),
+		SourceFiles:      sourceFiles,
 	}, nil
 }
 
@@ -172,21 +224,55 @@ func WriteReport(path string, report BacktestReport) error {
 	if err != nil {
 		return fmt.Errorf("marshal backtest report: %w", err)
 	}
-	if err := os.WriteFile(path, append(data, byte('\n')), 0o644); err != nil {
+	if err := os.WriteFile(path, append(data, byte(10)), 0o644); err != nil {
 		return fmt.Errorf("write backtest report: %w", err)
 	}
 	return nil
 }
 
+func WritePredictionsJSONL(path string, predictions []MatchPrediction) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("create predictions file: %w", err)
+	}
+	defer file.Close()
+	encoder := json.NewEncoder(file)
+	for _, prediction := range predictions {
+		if err := encoder.Encode(prediction); err != nil {
+			return fmt.Errorf("encode prediction: %w", err)
+		}
+	}
+	return nil
+}
+
 func predict(homeRating, awayRating float64, cfg Config) Probabilities {
+	switch cfg.ModelFamily {
+	case ModelFamilyDrawDecay:
+		return predictDrawDecay(homeRating, awayRating, cfg)
+	case ModelFamilyDavidson, "":
+		fallthrough
+	default:
+		return predictDavidson(homeRating, awayRating, cfg)
+	}
+}
+
+func predictDavidson(homeRating, awayRating float64, cfg Config) Probabilities {
 	homeStrength := math.Pow(10, (homeRating+cfg.HomeAdvantage)/cfg.Scale)
 	awayStrength := math.Pow(10, awayRating/cfg.Scale)
 	drawStrength := cfg.DrawFactor * math.Sqrt(homeStrength*awayStrength)
 	denom := homeStrength + awayStrength + drawStrength
+	return Probabilities{HomeWin: homeStrength / denom, Draw: drawStrength / denom, AwayWin: awayStrength / denom}
+}
+
+func predictDrawDecay(homeRating, awayRating float64, cfg Config) Probabilities {
+	diff := (homeRating + cfg.HomeAdvantage) - awayRating
+	pDraw := cfg.BaseDraw * math.Exp(-math.Abs(diff)/cfg.DrawScale)
+	pDraw = clamp(pDraw, 0.01, 0.60)
+	pHomeNoDraw := 1.0 / (1.0 + math.Pow(10, -diff/cfg.Scale))
 	return Probabilities{
-		HomeWin: homeStrength / denom,
-		Draw:    drawStrength / denom,
-		AwayWin: awayStrength / denom,
+		Draw:    pDraw,
+		HomeWin: (1.0 - pDraw) * pHomeNoDraw,
+		AwayWin: (1.0 - pDraw) * (1.0 - pHomeNoDraw),
 	}
 }
 
@@ -261,6 +347,24 @@ func uniqueSeasons(matches []Match) []string {
 		seasons = append(seasons, match.Season)
 	}
 	return seasons
+}
+
+func cloneRatings(src map[string]float64) map[string]float64 {
+	cloned := make(map[string]float64)
+	for k, v := range src {
+		cloned[k] = v
+	}
+	return cloned
+}
+
+func clamp(value, low, high float64) float64 {
+	if value < low {
+		return low
+	}
+	if value > high {
+		return high
+	}
+	return value
 }
 
 func max(a, b float64) float64 {

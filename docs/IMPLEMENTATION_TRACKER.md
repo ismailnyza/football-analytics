@@ -23,9 +23,12 @@
 | SEC-006 First backtest harness | TESTED | Added `engine/baseline` loader, Davidson-style Elo baseline, tests, and `simcli baseline-backtest` to produce a deterministic validation artifact. |
 | SEC-007 First validated baseline dataset | TESTED | Checked in six EPL season result CSVs under `data/raw/football-data/` and documented provenance under `data/provenance/football-data-premier-league.md`. |
 | SEC-008 First evidence-graded factor result | TESTED | Ran the holdout backtest, wrote `docs/validation/iteration-001-baseline-backtest.json`, and recorded the measured result in `infra/EVIDENCE_MATRIX.md`. |
-| SEC-009 Draw-model search | TESTED | Added `calibration/backtest/search_draw_models.py` and `docs/validation/iteration-002-draw-search.json`; the best validation-supported draw-decay candidate reached 53.42% holdout accuracy with non-zero draw predictions. |
+| SEC-009 Draw-model search + Go integration | TESTED | The draw-decay baseline (k=28, HA=70, base_draw=0.40, draw_scale=75) is integrated into the main Go backtest path via DefaultGrid(). Holdout accuracy: 53.42% with 3.42% predicted draws. |
+| SEC-010 Naive-frequency benchmark | TESTED | Added `engine/baseline/naive.go` with `NewNaiveFrequency` and `EvaluateNaiveFrequency`, plus `simcli naive-frequency` command. Floor accuracy: 40.79% (always predict Home). Delta over naive: +12.63%. |
+| SEC-012 Player-level domain models | TESTED | Added `engine/domain/` package with Player, Team, Lineup, MatchEvent, Goal, Shot, Card, Substitution, and Assist types. 6 tests pass. |
 
 ## Risks and caveats
-- The committed Go baseline still achieves only 52.89% exact W/D/L accuracy on the 2024/25 EPL holdout, below both the research target and the stronger offline draw-decay candidates.
-- The best offline holdout candidate reached 54.74% with non-zero draw predictions, but it is not yet the committed mainline baseline because the Go harness still uses the earlier Davidson family.
+- Holdout accuracy improved from 52.89% (Davidson) to 53.42% (draw-decay) with non-zero draw predictions, but still below the offline best of 54.74%.
+- The draw-decay model still under-predicts draws (3.42% vs actual 24.47%).
 - Cross-league validation still does not exist.
+- Player-level models are defined but have no data ingestion, feature extraction, or engine integration yet.

@@ -18,3 +18,5 @@ Last updated: 2026-04-25
 | Skill | Purpose | Priority |
 | --- | --- | --- |
 | `.skills/video-verification` | Standardize representative match review and annotation | medium |
+| `.skills/player-data-ingestion` | Standardize player-level data loading, schema validation, and fixture generation | high |
+| `.skills/cross-league-validation` | Standardize per-league backtests and transferability measurement | high |

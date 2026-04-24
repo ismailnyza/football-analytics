@@ -8,10 +8,11 @@ Mission
 - improve the agent infrastructure itself: prompts, skills, memory hygiene, and workflow
 
 Current state
-- iteration 0 bootstrap complete
-- repository scaffolded for engine, calibration, evidence tracking, and self-audit
-- first executable artifact is a tiny `simcli` status command plus evidence primitives
-- first research target is a historical team-strength baseline for match result prediction
+- iteration 3 complete: draw-decay baseline integrated into main Go harness
+- committed holdout accuracy: 53.42% W/D/L on 2024/25 EPL (with non-zero draw predictions)
+- best offline candidate: 54.74% (weaker validation support)
+- player-level domain models defined as foundation for atomic match modelling
+- next: naive-frequency benchmark (SEC-010), cross-league validation (SEC-011)
 
 Core directories
 - `engine/` — Go packages for evidence tracking and simulation code

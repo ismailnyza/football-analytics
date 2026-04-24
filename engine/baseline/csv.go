@@ -30,9 +30,6 @@ func LoadMatches(paths []string) ([]Match, []string, error) {
 	seen := make(map[string]struct{})
 	var used []string
 	for _, path := range paths {
-		if strings.Contains(path, "2024_2025") {
-			continue
-		}
 		fileMatches, err := loadCSV(path)
 		if err != nil {
 			return nil, nil, err

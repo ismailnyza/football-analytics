@@ -21,9 +21,15 @@ Status values
 - [x] SEC-008 Record the first evidence-graded factor result in `infra/EVIDENCE_MATRIX.md`
 
 ## Phase 2 — Baseline error reduction
-- [ ] SEC-009 Integrate the better draw-decay baseline into the main Go backtest path
-- [ ] SEC-010 Add a naive-frequency benchmark and measure delta over that baseline
+- [x] SEC-009 Integrate the better draw-decay baseline into the main Go backtest path
+- [x] SEC-010 Add a naive-frequency benchmark and measure delta over that baseline
 - [ ] SEC-011 Expand the baseline across additional top-5 leagues and compare transferability
 
+## Phase 3 — Player-level modelling foundation
+- [x] SEC-012 Define player-level domain models (Player, Team, Lineup, MatchEvent, Goal, Shot, Card, Substitution, Assist)
+- [ ] SEC-013 Add player-level data ingestion contracts
+- [ ] SEC-014 Build team-form feature extraction from result history
+- [ ] SEC-015 Add feature registry and feature flag infrastructure
+
 ## Immediate next task
-Implement SEC-009: port the draw-decay candidate discovered in `iteration-002-draw-search` into the main Go baseline harness and beat the current committed 52.89% holdout benchmark.
+Implement SEC-011: expand the baseline across additional top-5 leagues (La Liga, Serie A, Bundesliga, Ligue 1) and compare transferability.
